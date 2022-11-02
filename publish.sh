@@ -1,12 +1,11 @@
 #!/bin/bash
-# Project:  blogdown
+# Project:  quarto-website
 # Topic:    Bash script to build and publish the website to github
 # Author:   Edoardo Costantini
 # Created:  2022-04-07
-# Modified: 2022-04-07
+# Modified: 2022-11-03
 
 # Clean current website
-rm -r ~/projects/quarto-website/_site/*
 rm -r ~/projects/edoardocostantini.github.io/*
 
 # Build website
@@ -28,4 +27,4 @@ git commit -m "automatic website update"
 git push
 
 # Return to previous location
-cd ~/projects/blogdown
+cd ~/projects/quarto-website

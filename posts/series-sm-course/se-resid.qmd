@@ -1,0 +1,80 @@
+---
+title: Understanding the residual standard error
+author: Edoardo Costantini
+date: '2022-06-22'
+slug: residual-standard-error
+categories: ["Knowledge snippet", "linear models", "ols"]
+---
+
+## Introduction
+
+The residual standard error is a measure of fit for linear regression models. 
+Conceptually, it can be thought of as the variability of the prediction error for a linear model.
+It is usually calculated as:
+
+$$
+SE_{resid} = \sqrt{ \frac{ \sum^{n}_{i = 1}(y_i - \hat{y}_i)^2 }{df_{resid}} }
+$$
+
+where:
+
+- $n$ is the sample size
+- $k$ is the number of parameters to estimate in the model 
+- $-1$ is the degree of freedom lost to estimate the intercept
+- $\hat{y}_i$ is the fitted $y$ value for the $i$-th individual
+- $df_{resid}$ is the degrees of freedom of the residuals ($n - k - 1$)
+
+The smaller the residual standard error, the better the model fits the data.
+
+## Learn by coding
+
+We can compute the residual standard error manually after estimating a linear model in R.
+To get a better grasp of the residual standard error, let's start by regressing the miles per gallon (mpg) on the number of cylinders (cyl), horsepower (hp), and weight (wt) of cars from the standard `mtcars` R dataset.
+
+```{r fit, warning = FALSE, message = FALSE}
+# Fit a linear model -----------------------------------------------------------
+
+  lm_fit <- lm(mpg ~ cyl + hp + wt, data = mtcars)
+
+```
+
+We can compute the residual standard error following the formula described above:
+
+```{r rse-manual, warning = FALSE, message = FALSE}
+# Compute the residual standard error manually ---------------------------------
+
+  # Define elements of the formula
+  n <- nrow(mtcars) # sample size
+  k <- 3            # number of parameters (regression coefficients)
+  yhat <- fitted(lm_fit) # fitted y values
+  y <- mtcars$mpg
+
+  # Compute rse
+  rse <- sqrt(sum((y - yhat)^2) / (n - k - 1))
+
+  # Print rse
+  rse
+
+```
+
+We can also extract it directly from any `lm` object:
+
+```{r rse-lm, warning = FALSE, message = FALSE}
+# residual standard error from lm output ---------------------------------------
+
+  # Use the sigma function to extract it from an lm object
+  sigma(lm_fit)
+
+  # Compare with the manual computation
+  sigma(lm_fit) - rse
+
+```
+
+## TL;DR, just give me the code!
+```{r TLDR, ref.label = knitr::all_labels(), echo=TRUE, eval=FALSE}
+```
+
+## Other resources
+
+- [Statology: How to Interpret Residual Standard Error](https://www.statology.org/how-to-interpret-residual-standard-error/)
+- [Statology: How to Calculate Residual Standard Error in R](https://www.statology.org/residual-standard-error-r/)

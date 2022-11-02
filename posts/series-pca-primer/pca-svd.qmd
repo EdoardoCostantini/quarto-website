@@ -1,0 +1,65 @@
+---
+title: Principal Component Analysis and SVD
+author: Edoardo Costantini
+date: '2022-05-13'
+slug: pcasvd
+categories: ["PCA"]
+bibliography: ../../resources/bibshelf.bib
+---
+
+# Introduction
+
+Principal Component Analysis (PCA) is a technique that finds a low-dimensional representation of a large set of variables contained in an $n \times p$ data matrix $\mathbf{X}$ with minimal loss of information.
+We refer to this low-dimensional representation as the $n \times r$ matrix $\mathbf{Z}$, where $r < p$.
+
+The columns of $\mathbf{Z}$ are called principal components (PCs) of $\mathbf{X}$.
+We follow the common practice of assuming that the columns of $\mathbf{X}$ are mean-centered and scaled to have a variance of 1.
+The first PC of $\mathbf{X}$ is the linear combination of the columns of $\mathbf{X}$ with the largest variance:
+$$
+    \mathbf{z}_1 = \lambda_{11} \mathbf{x}_1 + \lambda_{12} \mathbf{x}_2 + \dots + \lambda_{1p} \mathbf{x}_p = \mathbf{X} \mathbf{\lambda}_1
+$$
+with $\mathbf{\lambda}_1$ being the $1 \times p$ vector of coefficients $\lambda_{11}, \dots, \lambda_{1p}$.
+The second principal component ($\mathbf{z}_2$) is defined by finding the vector of coefficients $\mathbf{\lambda}_2$ giving the linear combination of $\mathbf{x}_1, \dots, \mathbf{x}_p$ with maximal variance out of all the linear combinations that are uncorrelated with $\mathbf{z}_1$.
+Every subsequent column of $\mathbf{Z}$ can be understood in the same way.
+As a result, the PCs are independent by definition and every subsequent PC has less variance than the preceding one.
+We can write the relationship between all the PCs and $\mathbf{X}$ in matrix notation:
+\begin{equation} \label{eq:PCAmatnot}
+    \mathbf{Z} = \mathbf{X} \mathbf{\Lambda}
+\end{equation}
+where $\mathbf{\Lambda}$ is a $p \times r$ matrix of weights, with columns $\mathbf{\lambda}_1, \dots, \mathbf{\lambda}_q$.
+PCA can be thought of as the process of projecting the original data from a $p$-dimensional space to a lower $q$-dimensional space.
+The coefficient vectors $\mathbf{\lambda}_1, \dots, \mathbf{\lambda}_r$ define the directions in which we are projecting the $n$ observations of $\mathbf{x}_1, \dots, \mathbf{x}_p$.
+The projected values are the principal component scores $\mathbf{Z}$.
+
+The goal of PCA is to find the values of $\mathbf{\Lambda}$ that maximize the variance of the columns of $\mathbf{Z}$.
+One way to find the PCA solution for $\mathbf{\Lambda}$ is by taking the truncated [singular value decomposition](https://en.wikipedia.org/wiki/Singular_value_decomposition#Relation_to_eigenvalue_decomposition) (SVD) of $\mathbf{X}$:
+
+\begin{equation} \label{eq:SVD}
+    \mathbf{X} = \mathbf{UDV}'
+\end{equation}
+
+where:
+
+- $\mathbf{D}$ is the $r \times r$ diagonal matrix with elements equal to the square root of the non-zero eigenvalues of $\mathbf{XX}^T$ and $\mathbf{X}^T\mathbf{X}$;
+- $\mathbf{U}$ is the $n \times r$ matrix of the first $r$ eigenvectors of $\mathbf{XX}^T$ such that $\mathbf{U}^T\mathbf{U=I}$
+- $\mathbf{V}$ is the $p \times r$ matrix of the first $r$ eigenvectors of $\mathbf{X}^T\mathbf{NXM}$ such that $\mathbf{V}^T\mathbf{V=I}$;
+
+The PCs scores are given by the $n \times r$ matrix $\mathbf{UD}$, and the weights $\mathbf{\Lambda}$ are given by the $p \times r$ matrix $\mathbf{V}$ [@jolliffe:2002 p45].
+
+## SVD solution to PCA
+
+## Eigen-decomposition solution to PCA
+
+# Learn by coding
+
+```{r data, warning = FALSE, message = FALSE}
+
+some <- 1
+
+```
+
+# TL;DR, just give me the code!
+```{r TLDR, ref.label = knitr::all_labels(), echo=TRUE, eval=FALSE}
+```
+
+# References

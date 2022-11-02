@@ -1,0 +1,73 @@
+---
+title: Deciding the Number of PCs with Non-Graphical Solutions to the Scree Test
+author: Edoardo Costantini
+date: '2022-05-16'
+slug: pca-non-graphical
+categories: ["PCA", "Tutorials"]
+---
+
+# Introduction
+
+Here I describe two different solutions to decide which number of components to sue for PCA with non-graphical solutions to teh scree test:
+
+- Kaiser Rule (aka Optimal Coordinate) $n_{oc}$.
+In its simplest form, the Kaiser's rule retains only the PCs with variances exceeding 1.
+If a PC has less variance than 1, it means that it explains less total variance than a single variable in the data, which makes it useless.
+
+- Acceleration Factor.
+For every $j$-th eigenvalue, the acceleration factor $a$ is calculated as the change in the slope between the line connecting the $eig_j$ and $eig_{j-1}$, and the line connecting $eig_j$ and $eig_{j+1}$
+$$
+a_{j} = (eig_{j+1} - eig_{j}) - (eig_{j} - eig_{j-1})
+$$
+Once the largest $a_j$ is found, the number of components is set to $j-1$.
+
+# Learn by coding
+
+```{r data, warning = FALSE, message = FALSE}
+# Prepare environment ----------------------------------------------------------
+
+library(nFactors)
+library(psych)
+
+# Perform PCA
+res <- psych::pca(Harman.5)
+
+# Extract eigenvalues
+eigenvalues <- res$values
+
+# Graph
+plotuScree(x = eigenvalues)
+
+# Non-graphical solutions
+ngs <- nScree(x = eigenvalues)
+
+# Kaiser rule\
+nkaiser_man <- sum(eigenvalues > 1)
+
+# Accelration factor
+a <- NULL
+for (j in 2:(length(eigenvalues) - 1)){
+  a[j] <- (eigenvalues[j + 1] - eigenvalues[j]) - (eigenvalues[j] - eigenvalues[j - 1])
+}
+
+naf_man <- which.max(a) - 1
+
+# Compare results
+data.frame(manual = c(naf = naf_man, nkaiser = nkaiser_man),
+           nFactor = c(naf = ngs$Components[["naf"]],
+                       nkaiser = ngs$Components[["nkaiser"]]))
+
+```
+
+
+# TL;DR, just give me the code!
+```{r TLDR, ref.label = knitr::all_labels(), echo=TRUE, eval=FALSE}
+```
+
+# Other resources
+
+- [Cross-entropy in RPubs](https://rpubs.com/juanhklopper/cross_entropy)
+- [A Gentle Introduction to Cross-Entropy for Machine Learning](https://machinelearningmastery.com/cross-entropy-for-machine-learning/)
+- [Understanding Categorical Cross-Entropy Loss, Binary Cross-Entropy Loss, Softmax Loss, Logistic Loss, Focal Loss and all those confusing names](https://gombru.github.io/2018/05/23/cross_entropy_loss/)
+- [ML Gloassary](https://ml-cheatsheet.readthedocs.io/en/latest/loss_functions.html)
+- [Loss Functions in Machine Learning](https://medium.com/swlh/cross-entropy-loss-in-pytorch-c010faf97bab)

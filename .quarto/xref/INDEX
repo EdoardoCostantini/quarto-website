@@ -1,0 +1,131 @@
+{
+  "posts/post-with-code/index.qmd": {
+    "index.html": "0b075d8e"
+  },
+  "posts/welcome/index.qmd": {
+    "index.html": "e7837445"
+  },
+  "index.qmd": {
+    "index.html": "9a1a5403"
+  },
+  "about.qmd": {
+    "about.html": "b769a3f4"
+  },
+  "posts/sweep/index.qmd": {
+    "index.html": "3bdaeb5a"
+  },
+  "digital-garden.qmd": {
+    "digital-garden.html": "b1099a77"
+  },
+  "digitalgarden.qmd": {
+    "digitalgarden.html": "0f9953fc"
+  },
+  "posts/series-pca/series-pca.qmd": {
+    "series-pca.html": "88c19aa9"
+  },
+  "research.qmd": {
+    "research.html": "1774568a"
+  },
+  "posts/series-pca/pca/pca.qmd": {
+    "pca.html": "5051f429"
+  },
+  "posts/series-pca/index.qmd": {
+    "index.html": "bb93e1f3"
+  },
+  "posts/series-pca/seties-primer-pca.qmd": {
+    "seties-primer-pca.html": "cbff612e"
+  },
+  "posts/series-primer-pca/seties-primer-pca.qmd": {
+    "seties-primer-pca.html": "ce8402a9"
+  },
+  "posts/series-primer-pca/pca/index.qmd": {
+    "index.html": "cedcc423"
+  },
+  "posts/series-primer-pca/index.qmd": {
+    "index.html": "274c61bb"
+  },
+  "posts/series-primer-pca/series-primer-pca.qmd": {
+    "series-primer-pca.html": "4d39c0d7"
+  },
+  "posts/series-primer-pca/pca.qmd": {
+    "pca.html": "5478b6d4"
+  },
+  "posts/series-primer-pca/pca/pca.qmd": {
+    "pca.html": "a664c7ba"
+  },
+  "series-primer-pca.qmd": {
+    "series-primer-pca.html": "3181ebba"
+  },
+  "posts/series/pca/index.qmd": {
+    "index.html": "a9a2cc77"
+  },
+  "posts/series/pca2/index.qmd": {
+    "index.html": "653f448e"
+  },
+  "series-pca.qmd": {
+    "series-pca.html": "33129be1"
+  },
+  "series-sm-course.qmd": {
+    "series-sm-course.html": "209c266b"
+  },
+  "posts/series-pca-primer/pca/index.qmd": {
+    "index.html": "dc2ed4a5"
+  },
+  "all-posts.qmd": {
+    "all-posts.html": "996d6d81"
+  },
+  "posts/series-em/sweep/index.qmd": {
+    "index.html": "9121ca87"
+  },
+  "posts/series-pca-primer/pca-svd/index.qmd": {
+    "index.html": "00c035d2"
+  },
+  "posts/series-pca-primer/pca-non-graphical-solutions/index.qmd": {
+    "index.html": "482b7660"
+  },
+  "posts/series-sm-course/se-resid/index.qmd": {
+    "index.html": "5ea128ee"
+  },
+  "posts/series-sm-course/quantiles/index.qmd": {
+    "index.html": "2eeaab77"
+  },
+  "posts/series-sm-course/quantiles.qmd": {
+    "quantiles.html": "e85df5e9"
+  },
+  "posts/series-sm-course/qunatiles.qmd": {
+    "qunatiles.html": "f2485919"
+  },
+  "posts/series-pca-primer/pca-svd.qmd": {
+    "pca-svd.html": "4063134e"
+  },
+  "posts/series-pca-primer/pca-non-graphical-solutions.qmd": {
+    "pca-non-graphical-solutions.html": "6e7657a5"
+  },
+  "posts/series-em/sweep.qmd": {
+    "sweep.html": "a07124b6"
+  },
+  "posts/series-sm-course/se-resid.qmd": {
+    "se-resid.html": "14298bbb"
+  },
+  "posts/sampling/norta.qmd": {
+    "norta.html": "b8dc32de"
+  },
+  "series-sampling.qmd": {
+    "series-sampling.html": "81aa9a5a"
+  },
+  "posts/series-sampling/norta.qmd": {
+    "norta.html": "f90f0261"
+  },
+  "posts/series-sm-course/boxplots.qmd": {
+    "boxplots.html": "cae81a9c"
+  },
+  "posts/series-pca-primer/pca-mix.qmd": {
+    "pca-mix.html": "a2c58c5f"
+  },
+  "posts/series-pca-primer/pcovr.qmd": {
+    "pcovr.html": "e6ccce9a"
+  },
+  "posts/series-pca-primer/pls.qmd": {
+    "pls.html": "2a4632c9"
+  }
+}

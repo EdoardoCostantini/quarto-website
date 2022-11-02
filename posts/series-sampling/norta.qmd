@@ -1,0 +1,152 @@
+---
+draft: false
+title: Normal to anything (NORTA) sampling
+author: Edoardo Costantini
+date: '2022-10-26'
+slug: norta
+categories: ["distributions"]
+bibliography: ../../resources/bibshelf.bib
+---
+
+# Introduction
+
+The Normal to anything (or NORTA) is a sampling approach that allows to generate multivariate data with a known correlation structure and arbitrary marginal distributions.
+For example, you could generate 2 variables with a given correlation structure and [poissan](https://en.wikipedia.org/wiki/Poisson_distribution) marginal distirbutinos.
+The only requirement is that the target marginal distributions need to have an [(inverse) cumulative distribution function](https://en.wikipedia.org/wiki/Quantile_function).
+
+# Learn by coding
+
+For this topic we will need a few packages:
+
+```{r packages}
+# Load pacakges ---------------------------------------------------------------
+
+library(SimCorMultRes)
+library(MASS)
+library(ggplot2)
+library(ggExtra) # for marginal plots
+library(e1071)
+
+```
+
+The norta approach can be summarized in three steps:
+
+  1. Sample a data matrix $X_{n \times p}$ from a Multivariate Normal distribution with target correlation structure
+  2. Transform the distributions of the individual variables $x_j$ for $j = 1, \dots, p$ (the marginal distributions) to a uniform distirbutino by applying the normal [CDF](https://en.wikipedia.org/wiki/Cumulative_distribution_function) to $X$ (in R `pnorm()`)
+  3. Transform the uniform marginals to any target distributinos by applying the inverse CDF of the targe distribution (usually implemented in R by a `qtarget()` function, for example `qpois()` or `qbeta`)
+
+## Sample from multivariate normal distribution
+
+First we sample 1000 observations from a multivariate normal distirbution with four correlated variables ($\rho = .7$).
+
+```{r MVN}
+# 1. Sample from multivariate normal distribution -----------------------------
+
+# Set the seed
+set.seed(20210422)
+
+# Fix parameters
+n <- 1e3 # smaple size
+p <- 2  # number of variables
+mu <- rep(0, p) # vector of means
+Sigma <- matrix(.7, nrow = p, ncol = p); diag(Sigma) <- 1 # correlation matrix
+
+# Sample Multivairate Normal data
+X <- mvrnorm(n = n, mu = mu, Sigma = Sigma)
+
+# Plot the multivariate distribution (scatterplot)
+X_scatter <- ggplot(data.frame(X), aes(x = X1, y = X2)) +
+      geom_point()
+
+# Add marginals of X
+ggMarginal(X_scatter, type = "histogram") 
+
+```
+
+## Transform normal marginals to uniform
+
+We can now transform the marginal distributions fo the $x$s to any target paramteric distribution. For example, consider transforming the marginals to poissan distributions. First, we compute the values of the normal cumulative distribution function (`pnorm()`) and then we compute the quantiles corresponding to the resulting cumulative probabilities based on the target marginal distribution using the `qpois()` function.
+
+```{r uniform}
+# 2. Transform marginals to a uniform distribution -----------------------------
+
+# Transform to uniform distribution (apply normal CDF to X)
+U <- pnorm(X) 
+
+# Make scatterplot
+U_scatter <- ggplot(data.frame(U), aes(x = X1, y = X2)) +
+      geom_point()
+
+# Add marginals of U
+ggMarginal(U_scatter, type = "histogram") 
+
+```
+
+## Transform uniform marginals to anything
+
+```{r poissan}
+# 3. Transform marginals to anything with a (inverse) CDF ----------------------
+
+# Transform to poissan (apply target inverse-CDF to X)
+X_pois <- qpois(U, lambda = 2)
+
+# And visualize
+X_pois_scatter <- ggplot(data.frame(X_pois), aes(x = X1, y = X2)) +
+      geom_point()
+ggMarginal(X_pois_scatter, type = "histogram") 
+
+```
+
+As another example, consider transforming the marginals to uniform distributions:
+
+```{r beta}
+# Transform to a beta distribution
+X_beta <- qbeta(U, shape1 = .5, shape2 = .5)
+
+# And visualize
+X_beta_scatter <- ggplot(data.frame(X_beta), aes(x = X1, y = X2)) +
+      geom_point()
+ggMarginal(X_beta_scatter, type = "histogram") 
+
+```
+
+We can use this procedure to transform the marginal distribution to any target distribution.
+
+## Check correlation between the variables is still the same
+
+We can see that the relatinoship between $X1$ and $X2$ is still the same.
+
+```{r visualize-multivariate}
+# Check that the multivariate distribution is still the same
+par(mfrow = c(1, 3))
+
+# Plot linear relationship between normal x1 and x2 (original data)
+plot(X[, 1], X[, 2], 
+    main = paste0("Normal marginals, cor = ", round(cor(X)[1, 2], 3)), 
+    xlab = "x1", ylab = "x2"
+    )
+
+# Plot linear relationship between normal x1 and x2 (original data)
+plot(X_pois[, 1], X_pois[, 2], 
+    main = paste0("Poissan marginals, cor = ", round(cor(X_pois)[1, 2], 3)), 
+    xlab = "x1", ylab = "x2"
+    )
+abline(lm(X_pois[, 1] ~ X_pois[, 2]), col = "blue", lwd = 3)
+
+# Plot linear relationship between normal x1 and x2 (original data)
+plot(X_beta[, 1], X_beta[, 2], 
+    main = paste0("Beta marginals, cor = ", round(cor(X_beta)[1, 2], 3)), 
+    xlab = "x1", ylab = "x2"
+    )
+abline(lm(X_beta[, 1] ~ X_beta[, 2]), col = "blue", lwd = 3)
+
+```
+
+# TL;DR, just give me the code!
+```{r TLDR, ref.label = knitr::all_labels(), echo=TRUE, eval=FALSE}
+```
+
+# References
+
+## Online resources
+[SAS blogs: introduction to copulas](https://blogs.sas.com/content/iml/2021/07/05/introduction-copulas.html)

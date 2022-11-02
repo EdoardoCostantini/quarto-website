@@ -1,0 +1,14 @@
+---
+title: "A primer on PCA"
+listing:
+  contents: posts/series-pca-primer
+  sort: "date desc"
+  type: table
+  categories: false
+  sort-ui: false
+  filter-ui: false
+  table-hover: true
+  fields: [date, title, categories]
+page-layout: full
+title-block-banner: true
+---

@@ -1,0 +1,14 @@
+---
+title: "Course: Statistics and Methodology"
+listing:
+  contents: posts/series-sm-course
+  sort: "date desc"
+  type: table
+  categories: false
+  sort-ui: false
+  filter-ui: false
+  table-hover: true
+  fields: [date, title, categories]
+page-layout: full
+title-block-banner: true
+---

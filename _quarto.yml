@@ -1,0 +1,24 @@
+project:
+  type: website
+
+website:
+  title: "Edo"
+  navbar:
+    left:
+      - text: "Digital garden"
+        menu:
+          - all-posts.qmd
+          - series-pca.qmd
+          - series-sm-course.qmd
+          - series-sampling.qmd
+      - href: research.qmd
+        text: Research
+     
+format:
+  html:
+    theme: 
+      light: [flatly, light.scss]
+      dark: [darkly, dark.scss]
+    css: styles.css
+    toc: true
+  

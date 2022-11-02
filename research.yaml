@@ -1,0 +1,47 @@
+# Source: https://ddimmery.com/posts/quarto-website/
+# Notes:
+# - info is processed by the python funciotn in the research.qmd file
+# - if you do not include published_url: then paper goes to work in progress
+# - to upload you need to refresh research.qmd
+paper_mihd:
+    title: "High-dimensional imputation for the social sciences: a comparison of state-of-the-art methods"
+    authors:
+      - me
+      - Kyle M. Lang
+      - Tim Reeskens
+      - Klaas Sijtsma
+    year: 2022
+    github: https://github.com/EdoardoCostantini/imputeHD-comp
+    dataset: https://doi.org/10.4232/1.13511
+    shiny:
+    preprint: https://arxiv.org/pdf/2208.13656.pdf
+    published_url: https://arxiv.org/pdf/2208.13656.pdf
+    venue: tbd
+paper_mipcr:
+  title: "Solving the many variables problem in MICE with principal component regression"
+  authors:
+    - me
+    - Kyle M. Lang
+    - Tim Reeskens
+    - Klaas Sijtsma
+  year: 2022
+  github: https://github.com/EdoardoCostantini/mipca_compare
+  dataset: https://github.com/amices/mice/blob/master/data/fdd.rda
+  shiny: https://edoardocostantini.shinyapps.io/shiny-mi-pca-plot/?_ga=2.187725984.929064409.1659041054-1213691852.1658930327
+  preprint: https://arxiv.org/pdf/2206.15107.pdf
+  published_url: https://arxiv.org/pdf/2206.15107.pdf
+  venue: tbd
+paper_mispcr:
+  title: "Supervised principal component regression imputation in MICE"
+  authors:
+    - me
+    - Kyle M. Lang
+    - Tim Reeskens
+    - Klaas Sijtsma
+  year: 2023
+  github: https://github.com/EdoardoCostantini/mi-spcr
+  dataset: 
+  shiny: https://edoardocostantini.shinyapps.io/mi-pcr-plot/?_ga=2.193807589.95894774.1658930327-1213691852.1658930327
+  preprint: 
+  published_url:
+  venue: tbd

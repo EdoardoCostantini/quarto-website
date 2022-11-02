@@ -1,0 +1,21 @@
+---
+title: "About"
+image: resources/profile.jpeg
+about:
+  template: jolla
+  links:
+    - icon: github
+      text: Github
+      href: https://github.com/EdoardoCostantini?tab=repositories
+    - icon: linkedin
+      text: LinkedIn
+      href: https://www.linkedin.com/in/edoardo-costantini-78352b137/
+    - icon: envelope
+      text: Email
+      href: 'mailto:e.costantini@tilburguniversity.edu'
+    - icon: person
+      text: Resume
+      href: https://github.com/EdoardoCostantini-digital-space/resume/raw/master/pdf/resume.pdf
+---
+
+I'm a PhD researcher at Tilburg University working on multiple imputation algorithms for survey data.

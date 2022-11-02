@@ -1,0 +1,596 @@
+---
+draft: false
+title: Implementing a PLS alogirthm in R
+author: Edoardo Costantini
+date: '2022-06-13'
+slug: pls
+categories: ["Supervised learning"]
+bibliography: ../../resources/bibshelf.bib
+---
+
+# Introduction
+
+Many data analysts face the problem of analyzing data sets with many, often highly correlated, variables. 
+Partial Least Square Regression (PLSR) is a regression method that uses linear combinations of the original predictors to reduce their dimensionality.
+As principal component regression, PLS uses derived inputs, however, it differs from PCR by how the linear combinations are constructed.
+
+Given a set of predictors $X_{n \times p}$ and a vector of dependent variable scores $y_{n \times 1}$, the least-square solution for the multiple linear regression
+
+$$
+y = X \beta + \epsilon\text{, with } \epsilon \sim N(0, \sigma^2)
+$$
+
+is 
+
+$$
+\beta = (X'X)^{-1}X'y
+$$
+
+where $X'$ is the transpose of the data matrix $X$, and $()^{-1}$ is the matrix inverse.
+When collinearity is present in $X$ or $p > n$, then $X'X$ is singular and its inverse cannot be computed.
+Derived input regression methods like PCR and PLSR bypass this problem by taking linear combinations of the columns of the original $X$ and regressing $Y$ on just a few of these linear combinations.
+The peculiarity of PLSR is that it includes information on both $X$ and $Y$ in the definition of the linear combinations.
+In this post, we look at two algorithms to estimate PLSR to get a better understanding of the method.
+
+## Popular algorithms to implement PLS
+
+Here, I describe informally the algorithm steps:
+
+1. Preprocessing the data - the columns of the input matrix $X$ are standardized to have mean 0 and variance 1.
+2. The cross-product of every column of $X$ and $y$ is computed: $\rho_{1j} = x_{j}' y$ for $j = 1, \dots, p$. 
+3. Compute the first partial-least-square direction $z_1$ - The cross-products $\rho_{1j}$ are used as weights to obtain a linear combination of the columns: $z_1 = \sum \rho_{1j} x_{j}$. This implies that the contribution of each column to $z_1$ is weighted by their univariate relationship with the dependent variable $y$.
+4. Regression of $y$ on $z_1$ - The outcome variable $y$ is regressed on this first direction $z_1$ to obtain $\hat{\theta}_1$.
+5. Orthogonalization of $X$ - All columns of $X$ are orthogonalized with respect to $z_1$.
+6. The cross-product of every column of $X$ and $y$ is computed again: $\rho_{2j} = x_{j}' y$ for $j = 1, \dots, p$.
+7. Compute the second partial-least-square direction $z_2$ - The cross-products $\rho_{2j}$ are used as weights to obtain a linear combination of the columns: $z_2 = \sum \rho_{2j} x_{j}$. Notice that the columns $x_j$ we are using now are orthogonal to the previous partial least square direction $z_1$.
+8. Regression of $y$ on $z_2$ - The outcome variable $y$ is regressed on the second direction $z_2$ to obtain $\hat{\theta}_2$.
+9. Orthogonalization of $X$ - All columns of $X$ are orthogonalized with respect to $z_2$.
+
+The procedure continues until $M$ partial least square directions have been computed.
+The result is a set of independent directions that have both high variance and high correlation with the dependent variable, in contrast to PCR which finds a set of independent directions that have high variance.
+
+Now we report pseudo-code for the implementation of the PLS algorithm (inspired by Report Algorithm 3.3 p.103 as in [@hastieEtAl:2015]).
+We will use it to write the R code in the next session.
+
+1. Standardized each $x_j$ to have mean 0 and variance 1
+2. Set:
+   - $\hat{y}^{(0)} = \bar{y}1$
+   - $x_{j}^{(0)} = x_{j}$
+3. For $m = 1, 2, \dots, M$
+    a. $z_m = \sum_{j = 1}^{p} \rho_{mj}x_{j}^{(m-1)}$
+    b. $\hat{\theta}_m = \frac{z_m'y}{z_m' z_m}$
+    c. $\hat{y}^{(m)} = \hat{y}^{(m-1)} + \hat{\theta}_m z_m$
+    d. for $j = 1, \dots, p$ orthogonalize $x_{j}$ with respect to $z_m$: $x_{j}^{(m)} = x_{j}^{(m-1)} - \frac{z_m' x_{j}^{(m)}}{z_m' z_m}z_m$
+4. Output the sequence of fitted vectors $\hat{y}^{m}$
+
+# Learn by coding
+
+```{r functions, echo = FALSE}
+# Functions needed ----------------------------------------------------------------
+
+# Degrees of freedom for supervised derived input models
+
+dofPLS <- function(X, y, TT, Yhat, m = ncol(X), DoF.max = ncol(X) + 1){
+    # Example inputs
+    # X = scale(mtcars[, -1])
+    # y = mtcars[, 1]
+    # m = ncol(X)
+    # DoF.max = m + 1
+    # TT <- linear.pls.fit(X, y, m, DoF.max = DoF.max)$TT # normalizezs PC scores
+    # Yhat <- linear.pls.fit(X, y, m, DoF.max = DoF.max)$Yhat[, 2:(m + 1)]
+
+    # Body
+    n <- nrow(X)
+
+    # Scale data
+    mean.X <- apply(X, 2, mean)
+    sd.X <- apply(X, 2, sd)
+    sd.X[sd.X == 0] <- 1
+    X <- X - rep(1, nrow(X)) %*% t(mean.X)
+    X <- X / (rep(1, nrow(X)) %*% t(sd.X))
+    K <- X %*% t(X)
+
+    # pls.dof
+    DoF.max <- DoF.max - 1
+    TK <- matrix(, m, m)
+    KY <- krylov(K, K %*% y, m)
+    lambda <- eigen(K)$values
+    tr.K <- vector(length = m)
+    for (i in 1:m) {
+        tr.K[i] <- sum(lambda^i)
+    }
+    BB <- t(TT) %*% KY
+    BB[row(BB) > col(BB)] <- 0
+    b <- t(TT) %*% y
+    DoF <- vector(length = m)
+    Binv <- backsolve(BB, diag(m))
+    tkt <- rep(0, m)
+    ykv <- rep(0, m)
+    KjT <- array(dim = c(m, n, m))
+    dummy <- TT
+    for (i in 1:m) {
+        dummy <- K %*% dummy
+        KjT[i, , ] <- dummy
+    }
+    trace.term <- rep(0, m)
+
+    for (i in 1:m) {
+        Binvi <- Binv[1:i, 1:i, drop = FALSE]
+        ci <- Binvi %*% b[1:i]
+        Vi <- TT[, 1:i, drop = FALSE] %*% t(Binvi)
+        trace.term[i] <- sum(ci * tr.K[1:i])
+        ri <- y - Yhat[, i]
+        for (j in 1:i) {
+            KjTj <- KjT[j, , ]
+            tkt[i] <- tkt[i] + ci[j] * tr(t(TT[, 1:i, drop = FALSE]) %*%
+                KjTj[, 1:i, drop = FALSE])
+            ri <- K %*% ri
+            ykv[i] <- ykv[i] + sum(ri * Vi[, j])
+        }
+    }
+
+    DoF <- trace.term + 1:m - tkt + ykv
+
+    DoF[DoF > DoF.max] <- DoF.max
+    DoF <- c(0, DoF) + 1
+    # TODO: check that it is correct to add the 1 after checking the DoF max condition
+    DoF
+
+}
+
+# Extract single factor --------------------------------------------------------
+
+dofPLS_single <- function(X, y, q = 1, TT, Yhat){
+    # Example inputs
+    # X = scale(mtcars[, -1])
+    # y = mtcars[, 1]
+    # m = ncol(X)
+    # DoF.max = m + 1
+    # TT <- linear.pls.fit(X, y, m, DoF.max = DoF.max)$TT # normalizezs PC scores
+    # q <- 3 # desired component / latent variable
+    # Yhat <- linear.pls.fit(X, y, m, DoF.max = DoF.max)$Yhat[, (q + 1)]
+
+    # Body
+    n <- nrow(X)
+    m <- ncol(X)
+    DoF.max <- ncol(X) + 1
+
+    # Scale data
+    mean.X <- apply(X, 2, mean)
+    sd.X <- apply(X, 2, sd)
+    sd.X[sd.X == 0] <- 1
+    X <- X - rep(1, nrow(X)) %*% t(mean.X)
+    X <- X / (rep(1, nrow(X)) %*% t(sd.X))
+    K <- X %*% t(X)
+
+    # pls.dof
+    DoF.max <- DoF.max - 1
+    TK <- matrix(, m, m)
+    KY <- krylov(K, K %*% y, m)
+    lambda <- eigen(K)$values
+    tr.K <- vector(length = m)
+    for (i in 1:m) {
+        tr.K[i] <- sum(lambda^i)
+    }
+    BB <- t(TT) %*% KY
+    BB[row(BB) > col(BB)] <- 0
+    b <- t(TT) %*% y
+    DoF <- vector(length = m)
+    Binv <- backsolve(BB, diag(m))
+    tkt <- 0
+    ykv <- 0
+    KjT <- array(dim = c(q, n, m))
+    dummy <- TT
+    for (i in 1:q) {
+        dummy <- K %*% dummy
+        KjT[i, , ] <- dummy
+    }
+    trace.term <- 0
+
+    Binvi <- Binv[1:q, 1:q, drop = FALSE]
+    ci <- Binvi %*% b[1:q]
+    Vi <- TT[, 1:q, drop = FALSE] %*% t(Binvi)
+    trace.term <- sum(ci * tr.K[1:q])
+    ri <- y - Yhat
+    for (j in 1:q) {
+        KjTj <- KjT[j, , ]
+        tkt <- tkt + ci[j] * tr(t(TT[, 1:q, drop = FALSE]) %*%
+            KjTj[, 1:q, drop = FALSE])
+        ri <- K %*% ri
+        ykv <- ykv + sum(ri * Vi[, j])
+    }
+
+    DoF <- trace.term + q - tkt + ykv
+    DoF <- ifelse(DoF > DoF.max, DoF.max, DoF)
+    DoF <- DoF + 1
+    DoF
+}
+
+# Pls function manual
+
+pls.manual <- function(ivs, dv, m = 1L){
+
+    # Parms
+    # M   <- 10 # number of "components"
+    # ivs <- yarn[[1]]
+    # dv <- yarn[[2]]
+
+    # Scale data
+    M <- m + 1
+    p <- ncol(ivs)
+    n <- nrow(ivs)
+    X      <- lapply(1:M, matrix, nrow = n, ncol = p)
+    X[[1]] <- scale(ivs)
+    y      <- dv
+    y_hat <- cbind(
+        mean(y),
+        matrix(rep(NA, n * (M - 1)), nrow = n)
+    )
+    z         <- matrix(NA, nrow = n, ncol = M)
+    theta_hat <- rep(NA, M)
+    W <- matrix(nrow = ncol(ivs), ncol = M)
+
+    # PLS Algorithm following HastieEtAl2017 p 81 (Algorithm 3.3)
+    for (m in 2:M) {
+        # 3a: Compute zm
+        store_2a <- matrix(NA, nrow = n, ncol = p)
+        for (j in 1:p) {
+            rho_hat_mj <- t(X[[m - 1]][, j]) %*% y
+            store_2a[, j] <- rho_hat_mj %*% X[[m - 1]][, j]
+        }        
+        z[, m] <- rowSums(store_2a)
+
+        # 3b: Compute regression coefficient for y ~ Zm
+        theta_hat[m] <- drop(t(z[, m]) %*% y / t(z[, m]) %*% z[, m])
+
+        # 3c: Compute predicted y with the current m directions
+        y_hat[, m] <- y_hat[, m - 1] + theta_hat[m] * z[, m]
+
+        # 3d: Orthogonalize all columns of X with respect to zm
+        for (j in 1:p) {
+            X[[m]][, j] <- orthogonalize(X[[m-1]][, j], z[, m])
+        }
+    }
+
+    # Normalize the component scores
+    Tsn <- apply(z[, -1], 2, function(j) j / sqrt(sum(j^2)))
+
+    # Return
+    return(
+        list(
+            Ts = z[, -1],
+            Tsn = Tsn,
+            Yhat = y_hat,
+            W = W[, -1]
+        )
+    )
+
+}
+
+# Orthogonalize two vectors
+orthogonalize <- function(vec1, vec2) {
+    v <- vec1
+    u <- vec2
+
+    newv <- v - drop(t(u) %*% v / (t(u) %*% u)) * u
+
+    return(newv)
+}
+
+```
+
+We start by loading a package already implementing the PLS algorithm and some data to test our code.
+We load the `PCovR` package to use the `alexithymia` data which reports the scores of 122 Blegian psychology stundets on three scales:
+
+- 20-item Toronto Alexithymia Scale (TAS-20) measuring the inability to recognize emotions.
+- Center for Epidemiological Studies Depression Scale (CES-D) measuring depression.
+- Rosenberg Self-Esteem Scale (RSE).
+
+The main objective of the data collection was to asssess how well TAS-20 can predict depression and self-esteem[^1].
+
+[^1]: Check the helpfile for the `alexithymia` data in the `PCovR` package for more information.
+
+```{r prep, warning = FALSE, message = FALSE}
+# Load packages ----------------------------------------------------------------
+
+# load packages
+library(PCovR)  # for data
+library(pls)    # for pls algorithm
+library(plsdof) # for pls algorithm
+
+# Load data
+data(alexithymia)
+
+# Devide in X and y
+X <- alexithymia$X
+y <- alexithymia$Y$RSE
+
+# Count the number of variables and observations
+p <- ncol(X)
+n <- nrow(X)
+
+# Define the number of directions we will use
+M <- 10
+
+```
+
+## Coding the PLS algorithm manually
+
+Let's go through the steps described in the pseudo code above.
+First we want to standardize the predictors.
+
+```{r standardize}
+# 1. Standardize the data ------------------------------------------------------
+
+    # Scale the predictors
+    Xstd <- scale(X)
+
+    # Means of X are now 0
+    cbind(
+        X = head(colMeans(X)), 
+        Xstd = round(head(colMeans(Xstd)), 5)
+        )
+
+    # SD of X are now 1
+    cbind(
+        X = head(apply(X, 2, sd)),
+        Xstd = round(head(apply(Xstd, 2, sd)), 5)
+        )
+
+```
+
+Then we want to set the intial values
+
+```{r initial}
+# 2. Set initial vlaues --------------------------------------------------------
+
+    # 2a: Set the initial prediction for y_hat to the mean of y
+    # Create an empty data.frame to store the initial value and future predictions
+    yhat_m <- matrix(rep(NA, n * (M + 1)), nrow = n)
+
+    # Replace the initial prediction with the mean of y
+    yhat_m[, 1] <- mean(y)
+
+    # 2b: Set every xj0 to xj
+    # Create an empty list of X values
+    Xm <- lapply(1:(M + 1), matrix, nrow = n, ncol = p)
+
+    # Place X as initial value for Xm
+    Xm[[1]] <- as.matrix(Xstd)
+
+```
+
+Finally, we can move to the estimation step.
+First we create the number
+
+```{r}
+# 3. Estimation ----------------------------------------------------------------
+
+    # Preparing objects
+    z <- matrix(NA, nrow = n, ncol = (M + 1)) # container for directions
+    theta_hat <- rep(NA, (M + 1)) # container for thetas
+
+```
+
+Then we move to the proper estimation.
+
+```{r pls-manual}
+
+    # PLS Algorithm following HastieEtAl2017 p 81 (Algorithm 3.3)
+    for (m in 2:(M + 1)) {
+        # 3a: Compute zm
+        W[, m] <- t(Xm[[m - 1]]) %*% y   # inner products / covariances
+        z[, m] <- Xm[[m - 1]] %*% W[, m] # compute the direction zm
+
+        # 3b: Compute regression coefficient for y ~ Zm
+        theta_hat[m] <- drop(t(z[, m]) %*% y / t(z[, m]) %*% z[, m])
+
+        # 3c: Compute predicted y with the current m directions
+        yhat_m[, m] <- yhat_m[, m - 1] + theta_hat[m] * z[, m]
+
+        # 3d: Orthogonalize all columns of X with respect to zm
+        for (j in 1:p) {
+            Xm[[m]][, j] <- orthogonalize(Xm[[m-1]][, j], z[, m])
+        }
+    }
+
+    # Fit PLSR model w/ pls package
+    pls_fit_pls <- pls::plsr(
+        y ~ as.matrix(X),
+        ncomp = M,
+        method = "oscorespls",
+        validation = "none"
+    )
+
+    # Fit PCR model w/ plsdof package
+    pls_fit_plsdof <- plsdof::pls.model(as.matrix(Xstd), y)
+    pls_fit_plsdof$coefficients[, 3+1]
+
+    # Compare predictions using up to a given m
+    m <- 3
+    head(
+        data.frame(
+            pls = round(as.data.frame(fitted(pls_fit_pls)), 3)[, m],
+            plsdof = round(pls_fit_plsdof$Yhat, 3)[, m + 1],
+            man = round(yhat_m, 3)[, m + 1]
+    ))
+
+```
+
+## Types of dependent variables
+
+```{r dv-types}
+# Types of DVs -----------------------------------------------------------------
+
+    data(oliveoil)
+    sens.pcr <- pls::pcr(sensory ~ chemical, ncomp = 4, scale = TRUE, data = oliveoil)
+    sens.pls <- pls::plsr(sensory ~ chemical, ncomp = 4, scale = TRUE, data = oliveoil)
+
+    oliveoil$sensory
+
+```
+
+## Prediction of new data
+
+How do we predict new data? Let's start by generating data form scratch
+
+```{r prediction}
+# Prediction -------------------------------------------------------------------
+
+    n <- 50 # number of observations
+    p <- 15 # number of variables
+    X <- matrix(rnorm(n * p), ncol = p)
+    y <- 100 + rnorm(n)
+    M <- 10 # number of "components"
+
+    ntest <- 200 #
+    Xtest <- matrix(rnorm(ntest * p), ncol = p) # test data
+    ytest <- rnorm(ntest) # test data
+
+    # Fit alternative PLSs
+    out_pls <- pls::plsr(
+        y ~ X,
+        ncomp = M,
+        scale = TRUE,
+        center = TRUE,
+        method = "oscorespls",
+        validation = "none"
+    )
+    out_plsdof <- plsdof::pls.model(X, y, compute.DoF = TRUE, Xtest = Xtest, ytest = NULL)
+
+    # Obtain predictions on new data
+    head(
+        round(
+            cbind(
+                PLS = predict(out_pls, newdata = Xtest)[, , M],
+                PLSdof = out_plsdof$prediction[, M + 1]
+            ), 5
+        )
+    )
+
+    # Make sure scale of prediction is correct
+    out_pls_cF <- plsr(
+      y ~ X,
+      ncomp = M,
+      scale = TRUE,
+      center = FALSE,
+      method = "oscorespls",
+      validation = "none"
+    )
+
+    Xs <- scale(X, center = TRUE, scale = FALSE)
+    ys <- scale(y, center = FALSE, scale = FALSE)
+
+    out_pls_cF <- plsr(
+      ys ~ Xs,
+      ncomp = M,
+      scale = TRUE,
+      center = FALSE,
+      method = "oscorespls",
+      validation = "none"
+    )
+
+    head(
+        round(
+        cbind(
+            PLS = predict(out_pls, newdata = Xtest)[, , M],
+            PLS_cf = mean(y) + predict(out_pls_cF, newdata = Xtest)[, , M],
+            PLSdof = out_plsdof$prediction[, M]
+        ), 5
+        )
+    )
+```
+
+## Degrees of freedom of the residuals
+
+```{r pls-dfs, eval = FALSE}
+# PLS degrees of freedom -------------------------------------------------------
+
+    library(plsdof)
+    set.seed(1234)
+
+    # Generate data data
+    n <- 100 # number of observations
+    p <- 15 # number of variables
+    m <- 15
+    X <- matrix(rnorm(n * p), ncol = p)
+    y <- rnorm(n)
+
+    # Fit model with package
+    outpls <- pls.model(X, y, compute.DoF = TRUE)
+    outpls$DoF
+    outpls.internal <- linear.pls.fit(X, y, m, DoF.max = min(n - 1, p + 1))
+
+    # Fit model with person PLS function
+    outpls_man <- pls.manual(ivs = X, dv = y, m = m)
+
+    # Fit model with plsr function from pls
+    pls_fit_pls <- plsr(
+        y ~ X,
+        ncomp = m,
+        scale = FALSE,
+        center = FALSE,
+        method = "oscorespls",
+        validation = "none"
+    )
+
+    # Y hats
+    round(outpls_man$Yhat - outpls$Yhat, 5)
+
+    # T scores
+    j <- 1
+    cbind(
+        PLSR = apply(scores(pls_fit_pls), 2, function(j) j / sqrt(sum(j^2)))[, j],
+        PLSTT = outpls.internal$TT[, j],
+        manualTs = outpls_man$Ts[, j],
+        manualTsn = outpls_man$Tsn[, j]
+    )
+
+    # Degrees of freedom PLSR
+    predi <- sapply(1:m, function(j) {
+        predict(pls_fit_pls, ncomp = j)
+    })
+    DoF_plsr <- dofPLS(
+        X,
+        y,
+        TT = apply(scores(pls_fit_pls), 2, function(j) j / sqrt(sum(j^2))),
+        Yhat = predi,
+        DoF.max = m + 1
+    )
+
+    # Degrees of freedom manual
+    DoF_manual <- dofPLS(
+        X,
+        y,
+        TT = outpls_man$Tsn,
+        Yhat = outpls_man$Yhat[, 2:(m + 1)],
+        DoF.max = m + 1
+    )
+
+    # Single DoF
+    DoF_single <- c(1, sapply(1:m, function(i) {
+        dofPLS_single(
+            X,
+            y,
+            TT = outpls_man$Tsn,
+            Yhat = outpls_man$Yhat[, (i + 1)],
+            q = i
+        )
+    }))
+
+    # Compare degrees of freedom
+    cbind(
+        PLSR = DoF_plsr,
+        PLSdof = outpls$DoF,
+        PLS_manual = DoF_manual,
+        diff = round(outpls$DoF - DoF_manual, 5),
+        DoF_single = DoF_single
+    )
+
+```
+
+# TL;DR, just give me the code!
+```{r TLDR, ref.label = knitr::all_labels(), echo=TRUE, eval=FALSE}
+```
+
+# References

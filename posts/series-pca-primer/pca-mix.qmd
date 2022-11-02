@@ -1,0 +1,513 @@
+---
+draft: true
+title: PCA with metrics, dimensionality reduction through PCA and MCA
+author: Edoardo Costantini
+date: '2022-05-17'
+slug: pca-mix
+categories: ["Categorical data"]
+bibliography: ../../resources/bibshelf.bib
+---
+
+# Introduction
+
+**Principal Component Analysis** (PCA) is a technique that finds a low-dimensional representation of a large set of variables contained in an $n \times p$ data matrix $\mathbf{X}$ with minimal loss of information.
+We refer to this low-dimensional representation as the $n \times r$ matrix $\mathbf{Z}$, where $r < p$.
+The columns of $\mathbf{Z}$ are called principal components (PCs) of $\mathbf{X}$.
+We can write the relationship between all the PCs and $\mathbf{X}$ in matrix notation:
+\begin{equation} \label{eq:PCAmatnot}
+    \mathbf{Z} = \mathbf{X} \mathbf{\Lambda}
+\end{equation}
+where $\mathbf{\Lambda}$ is a $p \times r$ matrix of coefficients, with columns $\mathbf{\lambda}_1, \dots, \mathbf{\lambda}_r$.
+PCA can be thought of as the process of projecting the original data from a $p$-dimensional space to a lower $q$-dimensional space.
+The coefficient vectors $\mathbf{\lambda}_1, \dots, \mathbf{\lambda}_r$ define the directions in which we are projecting the $n$ observations of $\mathbf{x}_1, \dots, \mathbf{x}_p$.
+The projected values are the principal component scores $\mathbf{Z}$.
+
+The goal of PCA is to find the values of $\mathbf{\Lambda}$ that maximize the variance of the columns of $\mathbf{Z}$.
+One way to find the PCA solution for $\mathbf{\Lambda}$ is by taking the truncated [singular value decomposition](https://en.wikipedia.org/wiki/Singular_value_decomposition#Relation_to_eigenvalue_decomposition) (SVD) of $\mathbf{X}$:
+
+\begin{equation} \label{eq:SVD}
+    \mathbf{X} = \mathbf{UDV}'
+\end{equation}
+
+The PCs scores are given by the $n \times r$ matrix $\mathbf{UD}$, and the weights $\mathbf{\Lambda}$ are given by the $p \times r$ matrix $\mathbf{V}$.
+
+**Multiple Correspondence Analysis** (MCA) is generally regarded as an equivalent tool that applies to discrete data.
+Chavent et al. [-@chaventEtAl:2014] have shown how using weights on rows and columns of the input data matrix can define a general PCA framework that includes standard PCA and MCA as special cases.
+This approach is often referred to as **PCA with metrics**, as metrics are used to introduce the weights.
+In this post, I want to show how PCA and MCA are related through this framework.
+
+## Generalised Singular Value Decomposition
+
+Consider an $n \times p$ matrix of input variables $\mathbf{Z}$ with row metric $\mathbf{N}$ and column metric $\mathbf{M}$.
+The Generalized Singular Value Decomposition of $\mathbf{Z}$ can be written as:
+$$
+\mathbf{Z} = \mathbf{U \Lambda V}^T
+$$
+where:
+
+- $\mathbf{\Lambda}$ is the $r \times r$ diagonal matrix with elements equal to the square root of the non-zero eigenvalues of $\mathbf{ZMZ}^T\mathbf{N}$ and $\mathbf{Z}^T\mathbf{NZM}$;
+- $\mathbf{U}$ is the $n \times r$ matrix of the first $r$ eigenvectors of $\mathbf{ZMZ}^T\mathbf{N}$ such that $\mathbf{U}^T\mathbf{MU=I}$
+- $\mathbf{V}$ is the $p \times r$ matrix of the first $r$ eigenvectors of $\mathbf{Z}^T\mathbf{NZM}$ such that $\mathbf{V}^T\mathbf{MV=I}$;
+
+The GSVD of $\mathbf{Z}$ can be obtained by taking 
+
+- first taking the standard SVD of the transformed matrix $\tilde{\mathbf{Z}} = \mathbf{N}^{1/2}\mathbf{Z}\mathbf{M}^{1/2}$ which gives:
+$$
+\tilde{\mathbf{Z}} = \tilde{\mathbf{U}}\tilde{\mathbf{\Lambda}}\tilde{\mathbf{V}}^T
+$$
+- and then transforming each element back to the original scale
+$$
+\mathbf{\Lambda} = \tilde{\mathbf{\Lambda}}
+$$
+$$
+\mathbf{U} = \mathbf{N}^{-1/2}\tilde{\mathbf{U}}
+$$
+$$
+\mathbf{V} = \mathbf{M}^{-1/2}\tilde{\mathbf{V}}
+$$
+
+
+## Relationship of GSVD to standard SVD
+
+It's easy to see how this GSVD differs from the standard formulation of SVD simply by the presence of the metrics $\mathbf{M}$ and $\mathbf{M}$.
+As you can see [here](https://en.wikipedia.org/wiki/Singular_value_decomposition#Relation_to_eigenvalue_decomposition), in the standard formulation of SVD:
+
+- $\mathbf{\Lambda}$ is the $r \times r$ diagonal matrix with elements equal to the square root of the non-zero eigenvalues of $\mathbf{ZZ}^T$ and $\mathbf{Z}^T\mathbf{Z}$;
+- $\mathbf{U}$ is the $n \times r$ matrix of the first $r$ eigenvectors of $\mathbf{ZZ}^T$ such that $\mathbf{U}^T\mathbf{U=I}$
+- $\mathbf{V}$ is the $p \times r$ matrix of the first $r$ eigenvectors of $\mathbf{Z}^T\mathbf{NZM}$ such that $\mathbf{V}^T\mathbf{V=I}$;
+
+## PCA and MCA as special cases of GSVD
+
+The solutions for both PCA and MCA can be obtained as special cases of the GSVD approach described by setting $\mathbf{Z}$ equal to a preprocessed version of the original data $\mathbf{X}$ and using $\mathbf{N}$ and $\mathbf{M}$ to appropriately weight the rows and columns.
+
+### PCA
+
+The input data for standard PCA is the $n \times p$ matrix $\mathbf{X}$ of $n$ rows (observations) described by $p$ numerical variables.
+The columns of this matrix are usually centered and standardized.
+The GSVD can be used to find the solution to PCA by setting $\mathbf{Z}$ equal to the centered and standardized version of $\mathbf{X}$ and weighting:
+
+- its rows by $1/n$, which is obtained by setting $\mathbf{N} = \frac{1}{n}I_n$
+- its columns by $1$, which is obtained by setting $\mathbf{M} = I_p$.
+This metric indicates that the distance between two observations is the standard euclidean distance between two rows of $\mathbf{Z}$
+
+By setting these values for the metrics, it is easy to see how the GSVD of $\mathbf{X}$ reduces to the standard SVD of $\mathbf{Z}$.
+
+### MCA
+
+For an $n \times p$ data matrix $\mathbf{X}$ with $n$ observations (rows) and $p$ discrete predictors (columns).
+Each $j = 1, \dots, p$ discrete variable has $k_j$ possible values.
+The sum of the $p$ $k_j$ values is $k$. 
+$\mathbf{X}$ is preprocessed by coding each level of the discrete items as binary variables describing whether each observation takes a specific value for every discrete variable.
+This results in an $n \times k$ [complete disjunctive table](https://www.xlstat.com/en/solutions/features/complete-disjuncive-tables-creating-dummy-variables) $\mathbf{G}$, sometimes also referred to as an indicator matrix.
+
+MCA is usually obtained by applying Correspondence Analysis to $\mathbf{G}$, which means applying standard PCA to the matrices of the row profiles and the column profiles.
+In particular, for the goal of obtaining a lower-dimensional representation of $\mathbf{X}$ we are interested in the standard PCA of the row profiles.
+Within the framework of PCA with metrics, MCA can be obtained by first setting:
+
+- $\mathbf{Z}$ to the centered $\mathbf{G}$
+- $\mathbf{N} = \frac{1}{n}I_n$
+- $\mathbf{M} = \text{diag}(\frac{n}{n_s}, s = 1, \dots, k)$
+
+The coordinates of the observations (the principal component scores) can be obtained by applying the GSVD of $\mathbf{Z}$ with the given metrics.
+
+# Learn by coding
+
+```{r mca, warning = FALSE, message = FALSE}
+
+### Object: Performing Multiple Correspondance Analysis in R 
+### Source: Practical Guide to Principal Component Methods 
+###         (Chapter 5 Code)
+
+# Load Packages
+  library("FactoMineR") # for analysis
+  library("factoextra") # for visualizarion1
+#   library("httpg")
+
+# Data Prep ---------------------------------------------------------------
+
+  data("poison")
+  head(poison[, 1:7], 3) # survey style data
+  
+# Subset active individuals and variables
+  poison.active <- poison[1:55, 5:15] 
+  head(poison.active[, 1:6], 3)
+  
+# Summaries
+  str(poison.active)
+  for (i in 1:4) {
+    plot(poison.active[,i], main=colnames(poison.active)[i],
+         ylab = "Count", col="steelblue", las = 2)
+  }
+  
+# The analysis ------------------------------------------------------------
+  
+  res.mca <- FactoMineR::MCA(X = poison.active,
+                             ncp = 5,
+                             graph = TRUE)
+
+# Visualization -----------------------------------------------------------
+
+  # Eigenvalues / Variances
+  eig.val <- get_eigenvalue(res.mca)
+  eig.val # proportion of variances retained by dimensions
+  
+  # Percentages of Inertia explained by MCA
+  fviz_screeplot(res.mca, addlabels = TRUE, ylim = c(0,45))
+  
+  # Biplot
+  fviz_mca_biplot(res.mca,
+                  repel = TRUE, # avoid text overlapping
+                  ggtheme = theme_minimal())
+    # Rows (individuals) are represented by blue points;
+    # Columns (variable categories) by red triangles.
+  
+  # Graph of variables
+  var <- get_mca_var(res.mca) 
+  var
+  # Coordinates 
+  head(var$coord)
+  # Cos2: quality on the factore map 
+  head(var$cos2)
+  # Contributions to the principal components
+  head(var$contrib)
+  
+  # Graph of individuals
+  ind <- get_mca_ind(res.mca) # extract the results for individuals
+  ind
+  # Coordinates of column points
+  head(ind$coord)
+  # Quality of representation
+  head(ind$cos2)
+  # Contributions
+  head(ind$contrib)
+  # BIplot for individuals only (no vars)
+  fviz_mca_ind(res.mca, col.ind = "cos2",
+               gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+               repel = TRUE, ggtheme = theme_minimal())
+  fviz_mca_ind(res.mca, 
+               label = "none",
+               habillage = "Vomiting", # color by groups defined by variable
+               palette = c("#00AFBB", "#E7B800"),
+               addEllipses = TRUE, ellipse.type = "confidence",
+               repel = TRUE, ggtheme = theme_minimal())
+  # More than 1 grouping variable
+  fviz_ellipses(res.mca, c("Vomiting", "Fever"),
+                geom = "point")
+  # Bar plot for Cos2 of individuals 
+  fviz_cos2(res.mca, choice = "ind", axes = 1:2, top = 20)
+  # Contribution of individuals to the dimensions 
+  fviz_contrib(res.mca, choice = "ind", axes = 1:2, top = 20)
+
+# Supplementary elements --------------------------------------------------
+
+#   res.mca <- MCA(poison, 
+#                  ind.sup = 53:55)
+#   ind <- get_mca_ind(res.mca)
+#   ind$coord
+#   res.mca$ind.sup # Supplementary individuals 
+  
+# Doing it by hand --------------------------------------------------------
+  
+  # Data
+  data(wine)
+  MCA.dt <- wine[, sapply(wine, is.factor)]
+  sapply(MCA.dt, nlevels)
+  
+  # Goal: Find the coordinates of 
+  npcs <- 4
+  res.mca <- FactoMineR::MCA(X = MCA.dt, ncp = npcs, graph = FALSE)
+  res.mca$ind$coord # Coordinates of the individuals on the dimensions
+  res.mca$svd$V
+  
+# Following AudigierEtAl2016_MICAT ----------------------------------------
+  
+  I <- nrow(MCA.dt)     # numebr of individuals
+  K <- ncol(MCA.dt)     # number of categorical predictors
+  qk <- sapply(MCA.dt,  # number of levels per categorical variable 
+               nlevels) 
+  J <- sum(qk)          # total number of categories
+  
+  # Disjunctive table
+  Z <- tab.disjonctif(MCA.dt)
+  # Notice the relationship between the disjunctive table and a 
+  # contingency table 
+  N <- t(Z[, 1:3]) %*% Z[, 4:7]
+  N - table(MCA.dt)
+  
+  # Distance Metric Matrix
+  pxkqk <- colSums(Z)/I # props ids taking category value on variable
+  D_Sigma <- diag(pxkqk)
+  
+  # Weight Matrix
+  W_mat <- diag(rep(1, I))/I
+  
+  # M matrix (center matrix)
+  M <- matrix((rep(colMeans(Z), nrow(Z))), 
+              nrow = nrow(Z), 
+              byrow = TRUE)
+  
+  # SVD of triplet (Z-M, D_Sigma, W_mat)
+  SVD.trip <- svd.triplet(X = Z - M,
+                          row.w = diag(W_mat),
+                          col.w = diag(1/K*solve(D_Sigma)),
+                          ncp = npcs)
+  
+  # Manual SVD triplet
+  SVD.man <- svd(sqrt(W_mat) %*% (Z - M) %*% sqrt(1/K*solve(D_Sigma)))
+  
+  # Convert back to correct scales (according to Chaven 2017 p. 3)
+  V.man <- (solve(sqrt(1/K*solve(D_Sigma))) %*% SVD.man$v)[, 1:npcs]
+  U.man <- (solve(sqrt(W_mat)) %*% SVD.man$u)[, 1:npcs]
+  L.man <- SVD.man$d[1:npcs]
+
+  # Compare SVD triplet and manual SVD of weighted matrix
+  round(abs(SVD.trip$V) - abs(V.man), 5)
+  round(abs(SVD.trip$U) - abs(U.man), 5)
+  round(abs(SVD.trip$vs[1:npcs]) - abs(L.man), 5)
+  
+  # Reconstruction Formula
+  d_hat <- SVD.trip$vs[1:npcs] # matrix of the singular values 
+                            # (Squared would be eigenvalues of Z)
+  u_hat <- SVD.trip$U # Left singular vectors matrix
+  v_hat <- SVD.trip$V # Right singular vectors matrix
+  
+  z_hat <- u_hat %*% diag(d_hat) %*% t(v_hat) + M
+  colSums(z_hat)
+  colSums(Z)
+  
+  # Compare SVD matrices
+  # Matrix of singular values
+  res.mca$svd$vs[1:npcs] -
+    d_hat[1:npcs]
+
+  res.mca$svd$vs[1:npcs] -
+    L.man
+  
+  # Left Singular Vectors Matrix
+  round(
+    res.mca$svd$U - u_hat,
+    3
+  )
+
+  round(
+    res.mca$svd$U - U.man,
+    3
+  )
+
+  # Right Singular Vectors Matrix
+  round(
+    res.mca$svd$V -
+      v_hat, 
+    3)
+  # Correlation between columns
+  # And look into the PCAmixdata package
+  round(cor(v_hat, res.mca$svd$V), 1)
+  
+  # Coordinates on Dimensions are recovered
+  round(
+    res.mca$ind$coord -
+      u_hat %*% diag(d_hat),
+    3
+  )
+
+# Following JosseHusson2016 -----------------------------------------------
+
+  I <- nrow(MCA.dt)
+  J <- ncol(MCA.dt)
+  X <- tab.disjonctif(MCA.dt)
+  rowMarg <- rowSums(X) # = J
+  colMarg <- colSums(X) # = number of ids in a category
+  D_Sigma <- diag(colMarg)
+  D <- 1/I * diag(rep(1, I)) # rowMasses
+  SVD.trip <- svd.triplet(X = diag(rep(1, I)) %*% X %*% solve(D_Sigma),
+                          row.w = diag( D ),
+                          col.w = diag( 1/(I*J)*D_Sigma ),
+                          ncp=2
+                          )
+  svd(I * X %*% solve(D_Sigma))
+  
+  SVD.trip$vs
+  round(SVD.trip$vs[2:3] - res.mca$svd$vs[1:2], 3)
+  
+  SVD.trip$U
+  res.mca$svd$U
+#   round(SVD.trip$U[, 2:3] - res.mca$svd$U, 3)
+  res.mca$svd$U
+  
+#   SVD.trip$V
+#   round(SVD.trip$V[, 2:3] - res.mca$svd$V, 3)
+#   res.mca$svd$V
+
+```
+
+```{r pca-mix}
+# Prepare environment ----------------------------------------------------------
+
+library(psych)
+library(PCAmixdata)
+
+library("FactoMineR")
+library("factoextra")
+
+data(tea)
+
+head(tea)
+
+lapply(tea[, c("where", "how", "SPC")], nlevels)
+
+sapply(tea, nlevels)
+
+x <- tea[, c("where", "how", "Tea")]
+
+CTD <- tab.disjonctif(x)
+pk <- colMeans(CTD)
+
+CTD[1, ] / pk
+CTD[4, ] / pk
+1/.64
+1/.56666667
+
+CTD_t <- t(apply(CTD, 1, function(r) {t(r)/pk} ))
+colMeans(CTD_t)
+
+
+N <- tab.disjonctif(x)
+1/nrow(tea)
+
+# Correspondance analysis based on contingency table ---------------------------
+x <- tea[, c("SPC", "where")]
+n <- nrow(x)
+r <- nlevels(x[, 1]) 
+C <- nlevels(x[, 2]) 
+N <- table(x)
+
+# Contingency table
+N
+
+# Indicator matrix
+Z <- tab.disjonctif(x)
+Z1 <- Z[, 1:r]
+Z2 <- Z[, -c(1:r)]
+N - t(Z1) %*% Z2
+
+# Correspondance matrix
+P <- 1/n * N
+
+# From Greenacre1984
+N
+
+# Column and row sums
+r_bold <- rowSums(N)
+c_bold <- colSums(N)
+
+drop(N %*% rep(1, ncol(N))) - r_bold
+drop(t(N) %*% rep(1, nrow(N))) - c_bold
+
+D_r <- diag(r_bold)
+D_c <- diag(c_bold)
+
+# Matrices of profiles
+
+R <- solve(D_r) %*% P
+C <- solve(D_c) %*% t(P)
+
+# Centroids
+r <- t(C) %*% c_bold
+c <- t(R) %*% r_bold
+
+# Generalized SVD of P - r_bold t(c_bold)
+
+P - r_bold %*% t(c_bold)
+A <- svd(P - r %*% t(c))$u
+B <- svd(P - r %*% t(c))$v
+
+t(A) %*% solve(D_r) %*% A
+t(B) %*% solve(D_c) %*% B
+
+# From Jolliffe p. 37
+# r_bold <- rep(1, r)
+# c_bold <- rep(1, C)
+# D_r <- diag(r_bold)
+# D_c <- diag(c_bold)
+# Omega <- solve(D_r)
+# Psi <- solve(D_c)
+# X <- P - r_bold %*% t(c_bold)
+
+# V <- svd(X)$u
+# M <- diag(svd(X)$d)
+# B <- svd(X)$v
+
+# round(t(V) %*% Omega %*% V, 3)
+# round(t(B) %*% Psi %*% B, 3)
+
+# X_til <- sqrt(Omega) %*% X %*% sqrt(Psi)
+
+# W <- svd(X_til)$u
+# K <- diag(svd(X_til)$d)
+# C <- svd(X_til)$v
+
+# solve(sqrt(Omega)) %*% W - V
+# solve(sqrt(Omega)) %*% C - B
+
+# W %*% K
+
+# # Row profiles
+# D_r
+
+# MCA based on Audigier et al 2017 p. 505 (p. 5 of pdf) ------------------------
+
+    # Work with categorical predictors from the tea dataset
+    x <- tea[, c("where", "how", "Tea")]
+
+    # Define row weights
+    I <- nrow(x)
+    R <- diag(1 / I, I)
+
+    # Define Z (the disjunctive table)
+    Z <- tab.disjonctif(x)
+
+    # Define column weights
+    K <- ncol(x)
+    plxk <- colMeans(Z)
+    D_sigma <- diag(plxk)
+    1 / K * solve(D_sigma)
+
+    # Define M
+    M <- matrix(rep(plxk, I), nrow = I, byrow = TRUE)
+
+    # Centered matrix?
+    Z - M
+
+# MCA based on Chavent Et Al 2017 et al 2017 p. 505 (p. 5 of pdf) -----------1  ---
+
+    # Work with categorical predictors from the tea dataset
+    x <- tea[, c("where", "how", "Tea")]
+
+    # Define Z (the disjunctive table)
+    G <- tab.disjonctif(x)
+
+    # Define row weights
+    n <- nrow(x)
+    N <- diag(1 / n, n)
+
+    # Define column weights
+    M <- diag(n / colSums(G))
+    solve(D_sigma)
+
+    # Create Z, the centered G?
+    plxk <- colMeans(G)
+    G - matrix(rep(plxk, I), nrow = I, byrow = TRUE)
+    Z <- t(t(G) - plxk)
+
+    # SVD of Z
+    u_til <- svd(Z)$u
+    lambda_til <- svd(Z)$d
+
+    # Principal Compoent Scores (factor coordinates of the rows)
+    u_til[, 1:3] %*% diag(lambda_til[1:3])
+```
+
+
+# TL;DR, just give me the code!
+```{r TLDR, ref.label = knitr::all_labels(), echo=TRUE, eval=FALSE}
+```

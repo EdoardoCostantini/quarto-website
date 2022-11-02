@@ -1,0 +1,207 @@
+---
+draft: true
+title: The theory of the EM algorithm
+author: Edoardo Costantini
+date: '2021-11-15'
+slug: em-theory
+categories: ["The EM algorithm"]
+bibliography: ../../resources/bibshelf.bib
+---
+
+# Introduction
+
+The Expectation Maximization (EM) algorithm is one possible way to implement the full information maximum likelihood missing data technique [@enders:2010 p86].
+It is an iterative optimization procedure that allows to estimate the parameters an analysis model in the presence of missing values without requiring the computation of first and second derivatives, which makes it possible to obtain Maximum Likelihood estimates of the parameters of interest even when they cannot be obtained in closed form.
+
+## Likelihood review
+
+Following [@schafer:1997 ch 2.3.2], consider an $n \times p$ data matrix $Y$, with some columns having missing values.
+The **complete data probability density function** of $Y$ is the function of $Y$ for fixed $\theta$ that can be written as:
+
+$$
+f(Y|\theta) = \prod_{i = 1}^{n} f(y_i|\theta) (\#eq:pdfy)
+$$
+
+where
+
+- $f$ is a probability density function (pdf);
+- $\theta$ is a vector of unknown parameters defining the $f$ distribution;
+- $f(y_i|\theta)$ is the density value for a single $i$-th row of the data matrix $Y$.
+
+The **complete-data likelihood function** $L(\theta|Y)$ is any function of $\theta$ for fixed $Y$ that is proportional to $f(Y|\theta)$:
+
+$$
+L(\theta|Y) \propto f(Y|\theta)
+$$
+
+and the complete-data *log*likelihood function $l(\theta|Y)$ is simply the natural logarithm of $L(\theta|Y)$
+
+$$
+l(\theta|Y) = log(L(\theta|Y))
+$$
+
+The **maximum likelihood estimate** of $\theta$ is the value of $\theta$ that leads to the highest value of of the log-likelihood function, for a fixed $Y$.
+This estimate can be found by setting the first derivative of the log-likelihood function equal to 0, and solving for $\theta$:
+
+$$
+\frac{\partial l(\theta|Y)}{\partial \theta} = 0 (\#eq:le)
+$$
+
+\@ref(eq:le) is called the **likelihood equation** or **score function**.
+If there are $d$ components to $\theta$, then the likelihood equation is a set of $d$ simultaneous equations defined by differentiating $l(\theta|Y)$ with respect to each component.
+
+### Example
+
+If we assume that $Y$ comes from a multivariate normal distribution with parameters $\theta = (\mu, \Sigma)$:
+
+- its complete data density is:
+
+  \begin{aligned}
+  f(Y|\mu, \Sigma) &= \prod^{n}_{i = 1} |(2 \pi)^{p} \Sigma|^{-\frac{1}{2}} \text{exp}\left(-\frac{1}{2}(y_i - \mu)^T \Sigma^{-1} (y_i - \mu) \right) \\
+  &= (2 \pi)^{-np/2} |\Sigma|^{-\frac{n}{2}} \text{exp}\left(-\frac{1}{2} \sum^{n}_{i=1}(y_i - \mu)^T \Sigma^{-1} (y_i - \mu) \right)
+  \end{aligned}
+
+- the complete data likelihood is:
+
+  \begin{aligned}
+  L(\mu, \Sigma | Y) &\propto |\Sigma|^{-\frac{n}{2}} \text{exp}\left(-\frac{1}{2} \sum^{n}_{i=1}(y_i - \mu)^T \Sigma^{-1} (y_i - \mu) \right)
+  \end{aligned}
+
+- its log version is:
+
+  \begin{aligned}
+  l(\mu, \Sigma | Y) &= log \left( |\Sigma|^{-\frac{n}{2}} \text{exp}\left(-\frac{1}{2} \sum^{n}_{i=1}(y_i - \mu)^T \Sigma^{-1} (y_i - \mu) \right) \right) \\
+  &= -\frac{n}{2}log(\Sigma) - \frac{1}{2} \sum^{n}_{i=1}(y_i - \mu)^T \Sigma^{-1} (y_i - \mu)
+  \end{aligned}
+
+- the likelihood equation is made of the following parts:
+
+  \begin{aligned}
+  \frac{\partial l(\theta|Y)}{\partial \mu} = 0 \\
+  \frac{\partial l(\theta|Y)}{\partial \sigma_{ij}} = 0
+  \end{aligned}
+
+  for derivation of these you can check out [@rao:1973 p 529], and you can use [Matrix Calculus](http://www.matrixcalculus.org) to perform the computations yourself.
+
+- the ML estiamtes of $\mu$ and $\Sigma$ derived by solving the likelihood equation are:
+
+  \begin{aligned}
+  \hat{\mu} &= \bar{y} \\
+  \hat{\Sigma} &= \frac{S}{n}
+  \end{aligned}
+
+  where $\bar{y}$ is the vector of sample means, and $S$ is the $p \times p$ cross-product matrix with the $(i, j)$th element $s_{ij} = \sum^{n}_{i = 1}(y_{ij} - \bar{y}_{j})(y_{ij} - \bar{y}_{j})$
+
+
+
+## Incomplete data
+
+In any incomplete-data problem, we can factor the distribution of the complete data $Y$ in \@ref(eq:pdfy) as:
+
+$$
+f(Y|\theta) = f(Y_{obs}|\theta) f(Y_{mis}|Y_{obs}, \theta) (\#eq:idp)
+$$
+
+where $f(Y_{obs}|\theta)$ is the density of the observed data $Y$; and $f(Y_{mis}|Y_{obs}, \theta)$ is the density of the missing data given the observed data.
+We can rewrite \@ref(eq:idp) as a function of $\theta$ and obtain the partitioning of the complete data likelihood function:
+
+$$
+L(\theta|Y) = L(\theta|Y_{obs}) f(Y_{mis}|Y_{obs}, \theta) c (\#eq:cdlp)
+$$
+
+and to make \@ref(eq:cdlp) easier to work with, it is useful to take its $log$:
+
+$$
+l(\theta|Y) = l(\theta|Y_{obs}) + log f(Y_{mis}|Y_{obs}, \theta) + c (\#eq:lcdlp)
+$$
+
+where:
+
+- $l(\theta|Y)$ is the complete-data loglikelihood
+- $l(\theta|Y_{obs})$ is the observed-data loglikelihood
+- $c$ is an arbitrary proportionality constant
+- $f(Y_{mis}|Y_{obs}, \theta)$ is the predictive distribution of the missing data given $\theta$
+
+The task is to find the estimate of $\theta$ that maximizes the log likelihood $l(\theta|Y_{obs})$.
+When this likelihood is differentiable the ML estimates of $\theta$ can be found by setting the its first derivative equal to 0 and solving for $\theta$:
+
+$$
+\frac{\partial l(\theta|Y_{obs})}{\partial \theta} = 0 (\#eq:floglike)
+$$
+
+However, it is not always easy (or possible) to find a closed form solution to \@ref(eq:floglike).
+
+
+# The EM algorithm
+
+Since $Y_{mis}$ is unknown, we cannot calculate the terms of \@ref(eq:lcdlp) that include it, so instead we take its average over the predictive distribution $f(Y_{mis}|Y_{obs}, \theta^{(t)})$, where $\theta^{(t)}$ is the current estimate of the unknown parameter.
+This means we multiply both sides of \@ref(eq:lcdlp) by $f(Y_{mis}|Y_{obs}, \theta^{(t)})$ and integrate over the unknown $Y_{mis}$ :
+
+\begin{aligned}
+\int & l(\theta|Y) f\left(Y_{mis}|Y_{obs}, \theta^{(t)}\right) dY_{mis} = l(\theta|Y_{obs}) + \\
+ & \int log f(Y_{mis}|Y_{obs}, \theta) f(Y_{mis}|Y_{obs}, \theta^{(t)}) dY_{mis} + c
+\end{aligned}
+
+which can be shortened to:
+
+$$
+Q\left(\theta|\theta^{(t)}\right) = l(\theta|Y_{obs}) + H(\theta|\theta^{(t)}) + c (\#eq:avglcdlp)
+$$
+
+It can be shown that if we define $\theta^{t+1}$ as the value of $\theta$ that maximizes $Q(\theta|\theta^{(t)})$, then $\theta^{t+1}$ is a better estimate than $\theta^{t+1}$ in the sense that its observed-data loglikelihood is at least as high as that of $\theta^{t}$:
+
+$$
+l \left( \theta^{(t+1)}|Y_{obs} \right) \geq l \left( \theta^{(t)}|Y_{obs} \right)
+$$
+
+After defining a starting value $\theta^{(0)}$, the EM algorithm consists of alternatively performing the following two steps:
+
+1. E-step (or expectation step) which finds the expected complete-data loglikelihood if $\theta$ were $\theta^{(t)}$:
+
+$$
+Q\left(\theta|\theta^{(t)}\right) = \int l(\theta|Y) f\left(Y_{mis}|Y_{obs}, \theta^{(t)}\right) dY_{mis}
+$$
+
+2. M-step (or maximization step) consisting of maximizing $Q\left(\theta|\theta^{(t)}\right)$ to find $Q^{t+1}$
+
+## EM for regular exponential families
+
+Consider the case when the complete-data probability model belongs to the [exponential family](https://en.wikipedia.org/wiki/Exponential_family) defined by:
+
+$$
+f(Y|\theta) = b(Y) \text{exp}\left(\frac{s(Y)\theta}{a(\theta)}\right)
+$$
+
+where
+- $\theta$ a parameter vector
+- $s(Y)$ denotes a vector of complete-data sufficient statistics
+- $a$ and $b$ are functions of $\theta$ and $Y$, respectively.
+
+# Other notes
+
+We refer to the observed part of $Y$ as $Y_{obs}$ and to the missing part as $Y_{mis}$.
+Under the missing at random assumption, the observed-data likelihood is proportional to the probability of $Y_{obs}$ given the unknown parameters $\theta$:
+
+$$
+L(\theta|Y_{obs}) \propto f(Y_{obs}|\theta) (\#eq:odl)
+$$
+
+If we assume that $Y$ comes from a [multivariate normal distribution](https://en.wikipedia.org/wiki/Multivariate_normal_distribution) with parameter $\theta = (\mu, \Sigma)$ and an arbitrary number ($S$) of missing data patterns, then, the observed-data likelihood can be written as:
+
+$$
+L(\theta|Y_{obs}) = \prod^{S}_{s = 1} \prod^{}_{i \in I(s)} |\Sigma_s^*|^{1/2} \text{exp}\left( - \frac{1}{2} (y_i^* - \mu_s^*)^T\Sigma_s^{*-1}(y_i^* - \mu_s^*) \right)
+$$
+
+where $I(s)$ is an indicator vector describing which rows are observed in the $s$-th missing data pattern, $y_i^*$ represents the observed part of the $i$-th row of $Y$, and $\mu_s^*$ and $\Sigma_s$ are the mean vector and covariance matrices for the variables that are observed in pattern $s$.
+Expect for special cases, it is not possible to express this likelihood as a product of complete-data likelihoods with distinct parameters, and computing its first derivative with respect to the individual parameters can be very complicated.
+
+The EM algorithm is a convenient alternative to maximize this likelihood (i.e., finding the ML estimates of $\theta$).
+EM is based on the fact that $Y_{mis}$ contains information on $\theta$ and that $\theta$ can be used to find plausible values for $Y_{mis}$.
+In fact, you can think of EM as iterating between filling in missing values based on a current estimate of $\theta$, and re-estimating $\theta$ based on the filled-in missing values until convergence.
+
+
+# TL;DR, just give me the code!
+```{r TLDR, ref.label = knitr::all_labels(), echo=TRUE, eval=FALSE}
+```
+
+# References

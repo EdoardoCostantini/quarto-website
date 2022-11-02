@@ -1,0 +1,65 @@
+---
+draft: true
+title: Using the EM algorithm for missing data analysis
+author: Edoardo Costantini
+date: '2021-11-19'
+slug: em-algorithm-missing-data
+categories: ["statistics", "regression", "missing values"]
+bibliography: ../../resources/bibshelf.bib
+---
+
+# Introduction
+
+The [Expectation-Maximization (EM)](https://en.wikipedia.org/wiki/Expectation–maximization_algorithm) algorithm is an iterative procedure that can be used to obtain maximum likelihood estimates (MLE) for a variety of statistical models.
+It can be used to estimate the parameters of factor analysis models or to estimate the covariance matrix of a collection of variables assumed to come from a normal distribution.
+In this post, I want to briefly describe a code implementation of the EM algorithm used for this latter purpose.
+For a formal presentation of the algorithm, I recommend reading Schafer [-@schafer:1997, ch 5.3.3] or Little and Rubin [-@littleRubin:2002, p. 168].
+
+## Review likelihood concepts
+
+Before getting to the EM algorithm is important to review a few concepts related to maximum likelihood estimation.
+The EM algorithm aims to obtain the MLE estimates of some model parameters.
+So first, it is important to make sure you understand what maximum likelihood estimation is.
+First of all, let's clarify what we mean when we say likelihood.
+
+Consider the following complete data (from @littleRubin:2002 example 7.7, p. 152):
+
+```{r load data}
+# Load Little Rubin data -------------------------------------------------------
+
+# Create data
+Y <- matrix(c(7, 1, 11, 11, 7, 11, 3, 1, 2, 21, 1, 11, 10,
+                  26, 29, 56, 31, 52, 55, 71 ,31, 54, 47,40,66,68,
+                  6, 15, 8, 8, 6, 9, 17, 22, 18, 4, 23, 9, 8,
+                  60,52, 20, 47, 33, 22,6,44,22,26,34,12,12,
+                  78.5,74.3,104.3,87.6,95.9,109.2,102.7,72.5,93.1,
+                  115.9,83.8,113.3,109.4), ncol = 5)
+                  
+# Store useful information
+  n <- nrow(Y)
+  p <- ncol(Y)
+
+```
+Every continuous distribution has a probability density function.
+
+If we assume that this data comes from a [multivariate normal distribution](https://en.wikipedia.org/wiki/Multivariate_normal_distribution) (MVN) we are saying that every row was sampled from this normal multivariate normal distribution.
+In math, we would write:
+
+\[
+Y \sim N(\mathbf{\mu}, \mathbf{\Sigma})
+\]
+
+In such a scenario, the MLE estimate will then try to find the population values of $\mu$ and $\Sigma$ that maximize the chance of observing the data we have observed ($Y$).
+For a given row of $Y$, we can compute the relative probability of observing it density by plugging the value in the probability density function of the MVN distribution.
+
+\[
+det(2 \pi \mathbf{\Sigma})^{-\frac{1}{2}} exp \left(-\frac{1}{2}(y_i - \mu)^T \Sigma^{-1} (y_i - \mu) \right)
+\]
+
+# The EM algorithm
+
+# TL;DR, just give me the code!
+```{r TLDR, ref.label = knitr::all_labels(), echo=TRUE, eval=FALSE}
+```
+
+# References

@@ -1,0 +1,47 @@
+---
+draft: true
+title: Why RMSE is not a suitable metric to evaluate multiple imputation methods
+author: Edoardo Costantini
+date: '2022-09-16'
+slug: rmse-imputation-criteria
+categories: ["missing values"]
+bibliography: ../../resources/bibshelf.bib
+---
+
+# RMSE and imputation
+
+The root mean squared error (RMSE) is a measure used to assess how well a model predicts a continuous dependent variable.
+Given a vector of observed and predicted values, $y$ and $\hat{y}_i$ respectively, the RMSE of the model that produced $\hat{y}_i$ can be computed as:
+
+\[
+\text{RMSE} = \sqrt{\frac{\sum_{i = 1}^{N} (y_i - \hat{y}_i)^2}{N} }
+\]
+
+The strength of RMSE is that it allows for simultaneously capturing the bias and variance of the prediction.
+For example, if the model you are using systematically predicts larger values than you should, then RMSE will increase because the difference between the observed and predicted ($y_i - \hat{y}_i$) value will be, on average, bigger.
+At the same time, if your model is returning the correct prediction on average but it can at times predict values that are very far from the observed value, then the variability of the prediction will be higher and so will the RMSE.
+
+In the context of imputation, RMSE has been used to compare the quality of different imputation procedures.
+However, this use is misguided. Prova.
+
+# Simulation study
+
+```{r results}
+
+obj <- readRDS("./rmse-imputation-criteria.rds")
+obj
+
+```
+
+As you can see in the results, regression imputation has a smaller RMSE than bayesian imputation.
+However, when we look at the coverage rate, we realize that regression imputation renders statistical inference impossible to use.
+The 95\% Confidence intervals that we can compute based on regression imputation cover the true value of the parameter only 40\% of the time.
+The standard error of the regression coefficient is computed assuming that the imputations are observed values.
+Bayesian imputation incorporates the uncertainty of the imputed values correctly and preserves the interpretation of confidence intervals.
+Under bayesian multiple imputation, the standard error of the regression coefficient is obtained in a way that incorporates the uncertainty around the imputed values.
+As a result, the SE and the confidence interval are larger than they would be had we observed the missing values.
+When performing regression imputation, there isn't a proper way to incorporate the uncertainty around the imputed values, and therefore the standard errors are computed by treating the imputed values as observed ones.
+
+## TL;DR, just give me the code!
+```{r TLDR, ref.label = knitr::all_labels(), echo=TRUE, eval=FALSE}
+```

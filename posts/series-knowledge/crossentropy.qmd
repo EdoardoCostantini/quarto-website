@@ -1,0 +1,214 @@
+---
+draft: false
+title: Cross-entropy as a measure of predictive performance
+author: Edoardo Costantini
+date: '2022-04-22'
+slug: covmatwt
+categories: ["Machine Learning"]
+bibliography: ../../resources/bibshelf.bib
+---
+
+# Introduction
+
+Cross-entropy (CE) quantifies the difference between two probability distributions.
+As such, it comes in handy as a [loss function](https://en.wikipedia.org/wiki/Loss_function) in multi-class classification tasks (e.g., multinomial logistic regression).
+It also provides an elegant solution for determining the difference between actual and predicted categorical data point values.
+It can be used to determine the predictive performance of a classification model.
+The value of the cross-entropy is higher when the predicted classes diverge more from the true labels.
+
+# Learn by coding
+
+In a multiclass-classification task, we calculate a separate "loss" for each class for each observation and sum the result:
+
+$$
+CE = - \sum^{N}_{i = 1} \sum^{K}_{k = 1} p_{(i, k)}log(\hat{p}_{(i, k)}) (\#eq:CE)
+$$
+
+where
+
+- $N$ is the sample size.
+- $K$ is the number of categories of the variable we are trying to predict.
+- $p$ is a scalar taking value $0 = \text{no}$ or $1 = \text{yes}$ to indicate whether observation $i$ belongs to class $k$. This can also be thought of as the true probability of the observation belonging to that class.
+- $\hat{p}$ is a scalar indicating the predicted probability of observation $i$ belonging to class $k$.
+- $log$ is the natural logarithm.
+
+Let's see an example in R.
+The `iris` data records the petal and sepal dimensions for `r nrow(iris)` and their species.
+Consider the task of predicting the flowers' species based on all the numeric predictors available.
+We will fit a multinomial logistic regression on the data and compute the cross-entropy between the observed and predicted class membership.
+
+To start, we should prepare the R environment by loading a few packages we will use:
+
+- `nnet` to estimate the multinomial logistic model;
+- `MLmetric` to check someone else's implementation of the cross-entropy computation.
+- `FactoMineR` to create a [disjunctive table](https://www.xlstat.com/en/solutions/features/complete-disjuncive-tables-creating-dummy-variables) from an R factor
+
+```{r data, warning = FALSE, message = FALSE}
+# Prepare environment ----------------------------------------------------------
+
+# Packages
+library(nnet)
+library(MLmetrics)  # for LogLoss() function
+library(FactoMineR) # for tab.disjonctif() function
+
+# Default rounding for this sessino
+options("digits" = 5)
+
+```
+Then, we should estimate the multinomial logistic model of interest.
+We will use this model to create predictions.
+
+```{r fit, warning = FALSE, message = FALSE, results = FALSE}
+# Fit mulinomial logistic model ------------------------------------------------
+
+# Fit model
+glm_mln <- multinom(Species ~ Sepal.Length, data = iris)
+
+```
+We can now create two R matrices `p` and `p_hat` storing all the scalars $p_{ik}$ and $\hat{p}_{ik}$ we need to compute \@ref(eq:CE).
+
+- First, we want to store all the $p_{ik}$ in one matrix.
+To do so, we can create a disjunctive table based on the `species` factor.
+This is an $N \times K$ matrix storing 0s and 1s to indicate which class every observation belongs to.
+  ```{r disjunctive, warning = FALSE}
+  # Obtain p and p_har -----------------------------------------------------------
+
+  # store true labels in a matrix p
+  p <- FactoMineR::tab.disjonctif(iris$Species)
+
+  # check it
+  head(p)
+
+  ```
+
+- Second, we want to obtain the predicted class probabilities for every observation:
+
+  ```{r preds, warning = FALSE}
+  # obtain predictions
+  p_hat <- predict(glm_mln, type = "probs")
+    
+  # check it
+  head(p_hat)
+
+  ```
+
+We can now write a loop to perform the computation in \@ref(eq:CE) for every $i$ and $k$.
+
+```{r loop, warning = FALSE}
+# Compute CE with a loop -------------------------------------------------------
+
+# Define parameters
+N <- nrow(iris) # sample size
+K <- nlevels(iris$Species) # number of classes
+
+# Create storing object for CE
+CE <- 0
+
+# Compute CE with a loop
+for (i in 1:N){
+  for (k in 1:K){
+    CE <- CE - p[i, k] * log(p_hat[i, k])
+  }
+}
+
+# Print the value of CE
+CE
+
+```
+
+We can also work with the matrices `p` and `p_hat` directly to avoid using a loop:
+
+```{r ce matrix}
+# Compute CE using the matrices directly ---------------------------------------
+ce <- -sum(diag(p %*% t(log(p_hat))))
+
+# Print the value of ce
+ce
+
+```
+This approach works for a binary prediction just as well.
+We only need to pay attention to storing the true and predicted probabilities in matrix form.
+For example, consider the task of predicting the transmission type (automatic or not) for the cars recorded in the `mtcars` dataset.
+
+```{r binary cross entropy}
+# Binary cross entropy ---------------------------------------------------------
+
+# Fit model
+glm_log <- glm(am ~ hp + wt,
+               family = binomial(link = 'logit'),
+               data = mtcars)
+
+# store true labels in a matrix p
+p <- FactoMineR::tab.disjonctif(as.factor(mtcars$am))
+
+# obtain predicted probabilites in matrix form
+pred_probs <- predict(glm_log, type = "response")
+p_hat <- cbind(k_0 = 1 - pred_probs,
+               k_1 = pred_probs)
+class(p_hat)
+```
+
+The objects `p` and `p_hat` are all the information we need to compute the cross-entropy for this binary prediction task:
+
+```{r check ps}
+# check the first few rows of p
+head(p)
+
+# check the first few rows of p_hat
+head(p_hat)
+
+```
+
+We can use these new objects to obtain the binary CE with the same computation we used for the multiclass CE:
+
+```{r ce binary}
+# Compute CE using the matrices directly
+ce <- -sum(diag(p %*% t(log(p_hat))))
+
+# Print the value of ce
+ce
+
+```
+
+It is not uncommon to divide the value of the cross-entropy by the number of units on which the computation is performed, effectively producing an average loss across the units.
+```{r ce binary average}
+# Express as average
+ce / nrow(mtcars)
+
+```
+
+Just to be sure, we can use the `LogLoss()` function from the `MLmetrics` package to compute the same binary CE.
+However, this function requires the true and predicted probabilities to be stored as vectors instead of matrices.
+So first we need to obtain the vector versions of `p` and `p_hat`.
+
+```{r ce LogLoss prep}
+# Compute binary CE with MLmetrics implementation ------------------------------
+
+# Obtain vector of true probabilities
+p_vec <- mtcars$am
+
+# Obtain vector of predicted probabilities
+p_hat_vec <- predict(glm_log, type = "response")
+
+```
+
+and then we can simply provide these objects to the `LogLoss()` function:
+
+```{r ce LogLoss compute}
+# Compute and print binary CE with MLmetrics implementation
+MLmetrics::LogLoss(y_pred = p_hat_vec,
+                   y_true = p_vec)
+
+```
+
+# TL;DR, just give me the code!
+```{r TLDR, ref.label = knitr::all_labels(), echo=TRUE, eval=FALSE}
+```
+
+# Other resources
+
+- [Cross-entropy in RPubs](https://rpubs.com/juanhklopper/cross_entropy)
+- [A Gentle Introduction to Cross-Entropy for Machine Learning](https://machinelearningmastery.com/cross-entropy-for-machine-learning/)
+- [Understanding Categorical Cross-Entropy Loss, Binary Cross-Entropy Loss, Softmax Loss, Logistic Loss, Focal Loss and all those confusing names](https://gombru.github.io/2018/05/23/cross_entropy_loss/)
+- [ML Gloassary](https://ml-cheatsheet.readthedocs.io/en/latest/loss_functions.html)
+- [Loss Functions in Machine Learning](https://medium.com/swlh/cross-entropy-loss-in-pytorch-c010faf97bab)

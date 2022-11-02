@@ -1,0 +1,194 @@
+---
+draft: true
+title: Fraction of missing information
+author: Edoardo Costantini
+date: '2022-09-20'
+slug: fmi
+categories: ["missing values"]
+bibliography: ../../resources/bibshelf.bib
+---
+
+# Fraction of missing information
+
+```{r}
+# Mice computation of FMI -----------------------------------------------------
+
+# Load package
+library(mice)
+
+# Define parameters
+n <- 50
+b0 <- 10
+b1 <- 5
+b2 <- 5
+b3 <- 0
+
+# Sample X data
+X <- MASS::mvrnorm(
+    n = n,
+    mu = rep(0, 3),
+    Sigma = matrix(c(
+        1, .5, 0,
+        .5, 1, 0,
+        0, 0, 1
+    ), nrow = 3)
+)
+
+# Sample Y from DGM
+y <- b0 + b1 * X[, 1] + b2 * X[, 2] + b3 * X[, 3] + rnorm(n)
+
+# Put together in a data frame
+dt <- data.frame(y = y, X = X)
+
+# Compute the probabilities of nonresponse:
+probs <- plogis(X[, 2])
+
+# Return a logical nonresponse vector:
+wy <- (as.logical(rbinom(n = n, size = 1, prob = probs)))
+
+# Impose missingness
+dt$y[wy] <- NA
+
+# Impute with Bayesian imputation
+m <- 5 # number of finaldata sets
+imp <- mice(dt, method = "norm", m = m, print = FALSE)
+
+# Fit a model to the multiple imputations
+k <- 1 + 3 # number of parameters
+fit.imp <- with(imp, lm(y ~ X.1 + X.2 + X.3))
+
+# Pool statistics
+pool.imp <- pool(fit.imp)
+
+# Compute manually ------------------------------------------------------------
+# Notes: page and equation numbers refer to van Buuren 2018
+
+# > Compute Q_bar (p. 42, eq. 2.16) -------------------------------------------
+
+    # Extract vector of estimates for the first parameter
+    Q_hat_vec <- sapply(
+        fit.imp$analyses,
+        function(x) {
+            coef(x)["X.1"]
+        }
+    )
+
+    # Obtain the pooled parameter
+    Q_bar <- mean(Q_hat_vec)
+
+# > Compute U_bar (p. 43, eq. 2.18) -------------------------------------------
+
+    # Extract vector of standard errors
+    U_bar_l <- sapply(
+        fit.imp$analyses,
+        function(x) {
+            (coef(summary(x))["X.1", "Std. Error"])^2
+        }
+    )
+
+    # Obtain the pooled parameter
+    U_bar <- mean(U_bar_l)
+
+# > Compute B (p. 43, eq. 2.19) -----------------------------------------------
+
+    B <- sum((Q_hat_vec - Q_bar)^2) / (m - 1)
+
+    # Obtain the pooled parameter
+    U_bar <- mean(U_bar_l)
+
+# > Compute T (p. 43, eq. 2.20) -----------------------------------------------
+
+    T <- U_bar + B + B/m
+
+# > Lambda (p. 46, eq. 2.24) --------------------------------------------------
+#   Interpretation: proportion of variation attributable to the missing data
+#   - lambda = 0 -> missing data do not add extra variation to parameter 
+#                   sampling variance
+#   - lambda = 1 -> missing data causes all of the variation in the parameter 
+#                   estimate
+#   - lambda > .5 -> influence of the imputation model on the final result is 
+#                   larger than complete-data
+
+    lambda <- (B + B/m) / T
+
+# > Relative increase in variance due to nonresponse (p. 47, eq. 2.25) --------
+
+    r <- (B + B / m) / U_bar
+
+    # Related to lambda
+    c(r, lambda / (1-lambda))
+
+# > Degrees of freedom (old) --------------------------------------------------
+#   Interpretation: number of observations after accounting for the number of 
+#                   parameters in the model.
+#   - nu_old =~ m - 1 if lambda is ~1, meaning all variation due to nonresponse
+#   - nu_old =~ Inf   if lambda is ~0, meaning all variation due to sampling
+
+    nu_old <- (m - 1) * (1 + 1 / r^2)
+    nu_old <- (m - 1) / lambda^2
+
+# > Degrees of freedom (com) --------------------------------------------------
+#   Interpretation: degrees of freedom of Q_bar in the hypothetically complete
+#                   data
+
+    nu_com <- n - k
+
+# > Degrees of freedom (obs) --------------------------------------------------
+#   Interpretation: estimated observed data degrees of freedom accounting for 
+#                   missing information
+
+    nu_obs <- (nu_com + 1) / (nu_com + 3) * nu_com * (1 - lambda)
+
+# > Degrees of freedom (adjusted) ---------------------------------------------
+#   Interpretation: adjusted degrees of freedom to be used for testing in
+#                   multiple imputation
+#   - nu <= nu_com  always!
+#   - nu =  nu_old  if nu_com = Inf
+#   - nu =  nu_com  if lambda = 0
+#   - nu =  0       if lambda = 1 (which makes no sense)
+#   - nu <  1       refrain from testing due to lack of info
+
+    nu <- nu_old * nu_obs / (nu_old + nu_obs)
+
+# > Fraction of information missing due to nonresponse (p. 47, eq. 2.25) ------
+#   Interpretation: proportion of variation attributable to the missing data
+#                   -> ADJUSTED for the finite number of imputations
+#   - gamma = 0 -> missing data do not add extra variation to parameter
+#                  sampling variance
+#   - gamma = 1 -> missing data causes all of the variation in the parameter
+#                  estimate
+#   - gamma > .5 -> influence of the imputation model on the final result is
+#                  larger than complete-data
+
+    gamma <- (r + 2/(nu + 3)) / (1 + r)
+
+    # Relation to lambda
+    # 1. Interpretation: same + ADJUSTED for a finite number of imputations
+    # 2. Computation:
+    c(
+        gamma,
+        (nu + 1) / (nu + 3) * lambda + 2 / (nu + 3)
+    )
+    # 3. Use in the literature: used interchangeably, but only for large nu 
+    #                           they are the same.
+
+# > Compare with mice ---------------------------------------------------------
+
+    # Results for B1
+    manual <- c(
+        Q_bar = Q_bar, U_bar = U_bar, B = B, T = T,
+        nu_com = nu_com, nu = nu,
+        r = r, lambda = lambda, gamma = gamma
+    )
+
+    # Mice results
+    mice_comp <- pool.imp$pooled[2, -(1:2)]
+
+    # Put together
+    rbind(manual, mice_comp)
+```
+
+
+# TL;DR, just give me the code!
+```{r TLDR, ref.label = knitr::all_labels(), echo=TRUE, eval=FALSE}
+```

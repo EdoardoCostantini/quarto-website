@@ -127,5 +127,35 @@
   },
   "posts/series-pca-primer/pls.qmd": {
     "pls.html": "2a4632c9"
+  },
+  "posts/ridge.qmd": {
+    "ridge.html": "92e6b62e"
+  },
+  "posts/series-knowledge/ridge.qmd": {
+    "ridge.html": "dcf0a769"
+  },
+  "posts/series-em/em-theory.qmd": {
+    "em-theory.html": "fc9a4fbb"
+  },
+  "posts/series-knowledge/covmatwt.qmd": {
+    "covmatwt.html": "0720d246"
+  },
+  "posts/series-knowledge/crossentropy.qmd": {
+    "crossentropy.html": "749a9796"
+  },
+  "posts/series-missing/congeniality.qmd": {
+    "congeniality.html": "90360c9d"
+  },
+  "posts/series-em/em-normal/em-normal.qmd": {
+    "em-normal.html": "0a2a0890"
+  },
+  "posts/series-em/em-normal.qmd": {
+    "em-normal.html": "605b1453"
+  },
+  "posts/series-missing/fmi.qmd": {
+    "fmi.html": "35f1cf23"
+  },
+  "posts/series-missing/rmse-imputation-criteria.qmd": {
+    "rmse-imputation-criteria.html": "570a22e7"
   }
 }

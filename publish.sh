@@ -3,13 +3,13 @@
 # Topic:    Bash script to build and publish the website to github
 # Author:   Edoardo Costantini
 # Created:  2022-04-07
-# Modified: 2022-11-03
+# Modified: 2022-11-04
 
 # Clean current website
 rm -r ~/projects/edoardocostantini.github.io/*
 
 # Build website
-R -e 'quarto render'
+quarto render
 
 # Copy public to github website location
 cp -r ~/projects/quarto-website/_site/. ~/projects/edoardocostantini.github.io/

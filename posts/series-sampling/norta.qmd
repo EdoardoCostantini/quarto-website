@@ -10,9 +10,9 @@ bibliography: ../../resources/bibshelf.bib
 
 # Introduction
 
-The Normal to anything (or NORTA) is a sampling approach that allows to generate multivariate data with a known correlation structure and arbitrary marginal distributions.
-For example, you could generate 2 variables with a given correlation structure and [poissan](https://en.wikipedia.org/wiki/Poisson_distribution) marginal distirbutinos.
-The only requirement is that the target marginal distributions need to have an [(inverse) cumulative distribution function](https://en.wikipedia.org/wiki/Quantile_function).
+The Normal to anything (or NORTA) is a sampling approach that allows the generation of multivariate data with a known rank correlation structure and arbitrary marginal distributions.
+For example, you could generate 2 variables $X_1$ and $X_2$ with a given rank correlation and [beta](https://en.wikipedia.org/wiki/Beta_distribution) marginal distributions.
+The only requirement is that the target marginal distributions need to be continuous distributions with a known [(inverse) cumulative distribution function](https://en.wikipedia.org/wiki/Quantile_function).
 
 # Learn by coding
 
@@ -26,18 +26,19 @@ library(MASS)
 library(ggplot2)
 library(ggExtra) # for marginal plots
 library(e1071)
+library(sn) # for skewed normal distribution
 
 ```
 
-The norta approach can be summarized in three steps:
+The NORTA approach can be summarized in three steps:
 
   1. Sample a data matrix $X_{n \times p}$ from a Multivariate Normal distribution with target correlation structure
-  2. Transform the distributions of the individual variables $x_j$ for $j = 1, \dots, p$ (the marginal distributions) to a uniform distirbutino by applying the normal [CDF](https://en.wikipedia.org/wiki/Cumulative_distribution_function) to $X$ (in R `pnorm()`)
-  3. Transform the uniform marginals to any target distributinos by applying the inverse CDF of the targe distribution (usually implemented in R by a `qtarget()` function, for example `qpois()` or `qbeta`)
+  2. Transform the distributions of the individual variables $x_j$ for $j = 1, \dots, p$ (the marginal distributions) to a uniform distribution by applying the normal [CDF](https://en.wikipedia.org/wiki/Cumulative_distribution_function) to $X$ (in R `pnorm()`)
+  3. Transform the uniform marginals to any continuous target distributions by applying the inverse CDF of the target distribution (usually implemented in R by a `qtarget()` function, for example, `qbeta`)
 
-## Sample from multivariate normal distribution
+## 1. Sample from a multivariate normal distribution
 
-First we sample 1000 observations from a multivariate normal distirbution with four correlated variables ($\rho = .7$).
+First, we sample 1000 observations from a multivariate normal distribution with four correlated variables ($\rho = .7$).
 
 ```{r MVN}
 # 1. Sample from multivariate normal distribution -----------------------------
@@ -51,9 +52,14 @@ p <- 2  # number of variables
 mu <- rep(0, p) # vector of means
 Sigma <- matrix(.7, nrow = p, ncol = p); diag(Sigma) <- 1 # correlation matrix
 
-# Sample Multivairate Normal data
+# Sample Multivariate Normal data
 X <- mvrnorm(n = n, mu = mu, Sigma = Sigma)
 
+```
+
+We can then plot a scatterplot of $X_1$ and $X_2$ to study their multivariate distribution and make the marginal plots visible.
+
+```{r}
 # Plot the multivariate distribution (scatterplot)
 X_scatter <- ggplot(data.frame(X), aes(x = X1, y = X2)) +
       geom_point()
@@ -63,10 +69,13 @@ ggMarginal(X_scatter, type = "histogram")
 
 ```
 
-## Transform normal marginals to uniform
+We can now transform the marginal distributions of the $x$s to any target continuous distribution.
 
-We can now transform the marginal distributions fo the $x$s to any target paramteric distribution. For example, consider transforming the marginals to poissan distributions. First, we compute the values of the normal cumulative distribution function (`pnorm()`) and then we compute the quantiles corresponding to the resulting cumulative probabilities based on the target marginal distribution using the `qpois()` function.
+## 2. Transform normal marginals into uniform
 
+For example, consider transforming the marginals to a beta distribution. 
+
+First, we compute the values of the normal cumulative distribution function (`pnorm()`).
 ```{r uniform}
 # 2. Transform marginals to a uniform distribution -----------------------------
 
@@ -82,10 +91,79 @@ ggMarginal(U_scatter, type = "histogram")
 
 ```
 
-## Transform uniform marginals to anything
+## 3. Transform uniform marginals into anything
+
+Then we compute the quantiles corresponding to the resulting cumulative probabilities based on the target marginal distribution using the `qbeta()` function.
+
+```{r beta}
+# 3. Transform marginals to anything with a (inverse) CDF ----------------------
+
+# > 3.1 Beta -------------------------------------------------------------------
+
+# Transform to a beta distribution
+X_beta <- qbeta(U, shape1 = .5, shape2 = .5)
+
+# And visualize
+X_beta_scatter <- ggplot(data.frame(X_beta), aes(x = X1, y = X2)) +
+      geom_point()
+ggMarginal(X_beta_scatter, type = "histogram") 
+
+```
+
+As another example, consider transforming the marginal to a highly skewed T distribution.
+
+```{r skew}
+# > 3.2 Skewed-t distribution --------------------------------------------------
+
+# Define the target skewness and kurtosis
+sk <- -2
+kt <- 10
+
+# Define direct parameterization for the skew-t (ST) distribution
+cpST <- c(0, 1, sk, kt)
+dpST <- cp2dp(cpST, family = "ST")
+
+# Transform to Skew-t (apply target inverse-CDF to X)
+X_st <- apply(U, 2, qst, dp = dpST)
+
+# And visualize
+X_st_scatter <- ggplot(data.frame(X_st), aes(x = X1, y = X2)) +
+      geom_point()
+ggMarginal(X_st_scatter, type = "histogram") 
+
+```
+
+### 3.1 Preserved multivariate relationships
+
+Upon generating the multivariate data $\mathbf{X}$, the association between the two variables $X_1$ and $X_2$ is determined by the correlation coefficient $\rho$ that we used in the `mvrnorm()` call.
+This coefficient expresses the linear dependence between the two variables which is not preserved when non-linear transformations are applied to the marginals (which we use).
+However, the NORTA approach does preserve [rank correlations](https://en.wikipedia.org/wiki/Rank_correlation) between the variables.
+In the following code, we compute the Pearson correlation (linear dependency), and the Spearman and Kendall's correlations (rank correlations) for the original data, and all other transformations.
+
+```{r}
+# Collect all sampled datasets
+dats <- list(X = X, U = U, skewt = X_st, beta = X_beta)
+
+# Compute all types of correlation on all datasets
+round(
+      data.frame(
+            Pearson = sapply(dats, function(i) cor(i, method = "pearson")[1,2]),
+            Spearman = sapply(dats, function(i) cor(i, method = "spearman")[1,2]),
+            Kendall = sapply(dats, function(i) cor(i, method = "kendall")[1,2])
+      ), 3
+)
+
+```
+
+As you can see, the NORTA sampling approach allows us to easily sample dependent multivariate data with arbitrary marginal distributions and known target (rank) correlations.
+
+### 3.2 Discrete distributions
+
+One can be tempted to use any marginal distribution, even discrete distributions. However, the rank correlation is not preserved when this marginal transformation is applied.
+Consider for example transforming the marginals to Poisson distributions:
 
 ```{r poissan}
-# 3. Transform marginals to anything with a (inverse) CDF ----------------------
+# > 3.3 Poissan distribution ---------------------------------------------------
 
 # Transform to poissan (apply target inverse-CDF to X)
 X_pois <- qpois(U, lambda = 2)
@@ -97,48 +175,42 @@ ggMarginal(X_pois_scatter, type = "histogram")
 
 ```
 
-As another example, consider transforming the marginals to uniform distributions:
+or to binomial distributions
 
-```{r beta}
-# Transform to a beta distribution
-X_beta <- qbeta(U, shape1 = .5, shape2 = .5)
+```{r binomial}
+# > 3.4 Binomial distribution ---------------------------------------------------
+
+# Transform to binomial
+X_binom <- qbinom(U, size = 6, prob = .2)
 
 # And visualize
-X_beta_scatter <- ggplot(data.frame(X_beta), aes(x = X1, y = X2)) +
+X_binom_scatter <- ggplot(data.frame(X_binom), aes(x = X1, y = X2)) +
       geom_point()
-ggMarginal(X_beta_scatter, type = "histogram") 
+ggMarginal(X_binom_scatter, type = "histogram") 
 
 ```
 
-We can use this procedure to transform the marginal distribution to any target distribution.
+if you check again both the linear and rank correlations you will notice that both have been impacted by these transformations:
 
-## Check correlation between the variables is still the same
+```{r}
+# Add the other datasets
+dats <- list(
+            X = X, 
+            U = U, 
+            skewt = X_st, 
+            beta = X_beta, 
+            poissan = X_pois, 
+            binomial = X_binom
+)
 
-We can see that the relatinoship between $X1$ and $X2$ is still the same.
-
-```{r visualize-multivariate}
-# Check that the multivariate distribution is still the same
-par(mfrow = c(1, 3))
-
-# Plot linear relationship between normal x1 and x2 (original data)
-plot(X[, 1], X[, 2], 
-    main = paste0("Normal marginals, cor = ", round(cor(X)[1, 2], 3)), 
-    xlab = "x1", ylab = "x2"
-    )
-
-# Plot linear relationship between normal x1 and x2 (original data)
-plot(X_pois[, 1], X_pois[, 2], 
-    main = paste0("Poissan marginals, cor = ", round(cor(X_pois)[1, 2], 3)), 
-    xlab = "x1", ylab = "x2"
-    )
-abline(lm(X_pois[, 1] ~ X_pois[, 2]), col = "blue", lwd = 3)
-
-# Plot linear relationship between normal x1 and x2 (original data)
-plot(X_beta[, 1], X_beta[, 2], 
-    main = paste0("Beta marginals, cor = ", round(cor(X_beta)[1, 2], 3)), 
-    xlab = "x1", ylab = "x2"
-    )
-abline(lm(X_beta[, 1] ~ X_beta[, 2]), col = "blue", lwd = 3)
+# Compute all types of correlation on all datasets
+round(
+      data.frame(
+            Pearson = sapply(dats, function(i) cor(i, method = "pearson")[1,2]),
+            Spearman = sapply(dats, function(i) cor(i, method = "spearman")[1,2]),
+            Kendall = sapply(dats, function(i) cor(i, method = "kendall")[1,2])
+      ), 3
+)
 
 ```
 
@@ -150,3 +222,4 @@ abline(lm(X_beta[, 1] ~ X_beta[, 2]), col = "blue", lwd = 3)
 
 ## Online resources
 [SAS blogs: introduction to copulas](https://blogs.sas.com/content/iml/2021/07/05/introduction-copulas.html)
+[Simulating Dependent Random Variables Using Copulas](https://www.mbfys.ru.nl/~robvdw/CNP04/LAB_ASSIGMENTS/LAB05_CN05/MATLAB2007b/stats/html/copulademo.html)

@@ -1,0 +1,14 @@
+{
+  "hash": "73d4d88a51f4a715e314d02ef05e2d01",
+  "result": {
+    "markdown": "---\ndraft: true # true\ntitle: Understanding t-tests\nauthor: Edoardo Costantini\ndate: '2022-09-06'\nslug: t-test\ncategories: [\"statistics\", \"inference\", \"distributions\"]\n---\n\n\n# Introduction\n\nA t-test is an inferential statistic used to draw conclusions based on comparisons between means.\nLike any statistical test, it weights the estimated effect by the precision of the estimate.\n\n$$\n\\text{test statistic} = \\frac{\\text{estimate} − \\text{Null Hypothesized Value}}{\\text{Variability}}\n$$\n\nThe shape this formula takes depends on the type of test we want to perform.\nT-tests are used to compare means, so the value of `estimate` and the `Null-Hypothesized Value` will be means and the variability will be the standard error of the mean.\n\n## 1-sample t-test\n\nThe simplest form of t-test is what is known as a 1-\n\n## 2-sample t-test\n\n### Unequal group sizes\n\n### Unequal variances between groups\n\n\n::: {.cell}\n\n:::\n\n\n## TL;DR, just give me the code!\n\n::: {.cell}\n\n```{.r .cell-code}\n# shinyApp(\n#     ui = fluidPage(\n#       numericInput(\"n\", \"n\", 1),\n#       plotOutput(\"plot\")\n#     ),\n#     server = function(input, output) {\n#       output$plot <- renderPlot( plot(head(cars, input$n)) )\n#     }\n#   )\n```\n:::",
+    "supporting": [],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

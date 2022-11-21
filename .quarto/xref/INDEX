@@ -157,5 +157,8 @@
   },
   "posts/series-missing/rmse-imputation-criteria.qmd": {
     "rmse-imputation-criteria.html": "570a22e7"
+  },
+  "posts/series-sm-course/t-test.qmd": {
+    "t-test.html": "0a1ca323"
   }
 }

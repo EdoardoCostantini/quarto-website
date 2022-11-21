@@ -18,7 +18,7 @@ The only requirement is that the target marginal distributions need to be contin
 
 For this topic we will need a few packages:
 
-```{r packages}
+```{r packages, warning = FALSE, message = FALSE}
 # Load pacakges ---------------------------------------------------------------
 
 library(SimCorMultRes)

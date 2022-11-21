@@ -1,8 +1,8 @@
 ---
-title: Principal Component Analysis and SVD
+title: Principal Component Analysis, SVD, and EVD
 author: Edoardo Costantini
 date: '2022-05-13'
-slug: pcasvd
+slug: pca-svd-evd
 categories: ["PCA"]
 bibliography: ../../resources/bibshelf.bib
 ---
@@ -10,28 +10,28 @@ bibliography: ../../resources/bibshelf.bib
 # Introduction
 
 Principal Component Analysis (PCA) is a technique that finds a low-dimensional representation of a large set of variables contained in an $n \times p$ data matrix $\mathbf{X}$ with minimal loss of information.
-We refer to this low-dimensional representation as the $n \times r$ matrix $\mathbf{Z}$, where $r < p$.
+We refer to this low-dimensional representation as the $n \times r$ matrix $\mathbf{T}$, where $r < p$.
 
-The columns of $\mathbf{Z}$ are called principal components (PCs) of $\mathbf{X}$.
+The columns of $\mathbf{T}$ are called principal components (PCs) of $\mathbf{X}$.
 We follow the common practice of assuming that the columns of $\mathbf{X}$ are mean-centered and scaled to have a variance of 1.
 The first PC of $\mathbf{X}$ is the linear combination of the columns of $\mathbf{X}$ with the largest variance:
 $$
-    \mathbf{z}_1 = \lambda_{11} \mathbf{x}_1 + \lambda_{12} \mathbf{x}_2 + \dots + \lambda_{1p} \mathbf{x}_p = \mathbf{X} \mathbf{\lambda}_1
+    \mathbf{t}_1 = \lambda_{11} \mathbf{x}_1 + \lambda_{12} \mathbf{x}_2 + \dots + \lambda_{1p} \mathbf{x}_p = \mathbf{X} \mathbf{\lambda}_1
 $$
 with $\mathbf{\lambda}_1$ being the $1 \times p$ vector of coefficients $\lambda_{11}, \dots, \lambda_{1p}$.
-The second principal component ($\mathbf{z}_2$) is defined by finding the vector of coefficients $\mathbf{\lambda}_2$ giving the linear combination of $\mathbf{x}_1, \dots, \mathbf{x}_p$ with maximal variance out of all the linear combinations that are uncorrelated with $\mathbf{z}_1$.
-Every subsequent column of $\mathbf{Z}$ can be understood in the same way.
+The second principal component ($\mathbf{t}_2$) is defined by finding the vector of coefficients $\mathbf{\lambda}_2$ giving the linear combination of $\mathbf{x}_1, \dots, \mathbf{x}_p$ with maximal variance out of all the linear combinations that are uncorrelated with $\mathbf{t}_1$.
+Every subsequent column of $\mathbf{T}$ can be understood in the same way.
 As a result, the PCs are independent by definition and every subsequent PC has less variance than the preceding one.
 We can write the relationship between all the PCs and $\mathbf{X}$ in matrix notation:
 \begin{equation} \label{eq:PCAmatnot}
-    \mathbf{Z} = \mathbf{X} \mathbf{\Lambda}
+    \mathbf{T} = \mathbf{X} \mathbf{\Lambda}
 \end{equation}
 where $\mathbf{\Lambda}$ is a $p \times r$ matrix of weights, with columns $\mathbf{\lambda}_1, \dots, \mathbf{\lambda}_q$.
 PCA can be thought of as the process of projecting the original data from a $p$-dimensional space to a lower $q$-dimensional space.
 The coefficient vectors $\mathbf{\lambda}_1, \dots, \mathbf{\lambda}_r$ define the directions in which we are projecting the $n$ observations of $\mathbf{x}_1, \dots, \mathbf{x}_p$.
-The projected values are the principal component scores $\mathbf{Z}$.
+The projected values are the principal component scores $\mathbf{T}$.
 
-The goal of PCA is to find the values of $\mathbf{\Lambda}$ that maximize the variance of the columns of $\mathbf{Z}$.
+The goal of PCA is to find the values of $\mathbf{\Lambda}$ that maximize the variance of the columns of $\mathbf{T}$.
 One way to find the PCA solution for $\mathbf{\Lambda}$ is by taking the truncated [singular value decomposition](https://en.wikipedia.org/wiki/Singular_value_decomposition#Relation_to_eigenvalue_decomposition) (SVD) of $\mathbf{X}$:
 
 \begin{equation} \label{eq:SVD}
@@ -41,22 +41,202 @@ One way to find the PCA solution for $\mathbf{\Lambda}$ is by taking the truncat
 where:
 
 - $\mathbf{D}$ is the $r \times r$ diagonal matrix with elements equal to the square root of the non-zero eigenvalues of $\mathbf{XX}^T$ and $\mathbf{X}^T\mathbf{X}$;
-- $\mathbf{U}$ is the $n \times r$ matrix of the first $r$ eigenvectors of $\mathbf{XX}^T$ such that $\mathbf{U}^T\mathbf{U=I}$
-- $\mathbf{V}$ is the $p \times r$ matrix of the first $r$ eigenvectors of $\mathbf{X}^T\mathbf{NXM}$ such that $\mathbf{V}^T\mathbf{V=I}$;
+- $\mathbf{U}$ is an $n \times p$ orthogonal matrix such that $\mathbf{U}^T\mathbf{U=I}$
+- $\mathbf{V}$ is the $p \times p$ orthogonal matrix of eigenvectors of $\mathbf{X}^T\mathbf{X}$ such that $\mathbf{V}^T\mathbf{V=I}$;
 
-The PCs scores are given by the $n \times r$ matrix $\mathbf{UD}$, and the weights $\mathbf{\Lambda}$ are given by the $p \times r$ matrix $\mathbf{V}$ [@jolliffe:2002 p45].
+The scores on the first $r$ PCs are given by the $n \times r$ matrix $\mathbf{U}_{r}\mathbf{D}_{r}$, where $\mathbf{U}_{r}$ and $\mathbf{D}_{r}$ stand for the reduced forms of $\mathbf{U}$ and $\mathbf{D}$ obtained by taking their first $r$ column and diagonal values.
+The weights $\mathbf{\Lambda}$ are given by the $p \times r$ matrix $\mathbf{V}_{r}$, so that:
+$$
+    \mathbf{T} = \mathbf{U}_{r}\mathbf{D}_{r} = \mathbf{X}\mathbf{V}_{r}
+$$
 
-## SVD solution to PCA
-
-## Eigen-decomposition solution to PCA
+Another way to achieve the same solution relies on the [eigenvalue decomposition](https://en.wikipedia.org/wiki/Eigendecomposition_of_a_matrix) (EVD) of the cross-product matrix (or the correlation matrix).
+In particular, the EVD of $\mathbf{X}^{T} \mathbf{X}$ is equal to $\mathbf{V} \mathbf{D}^{2} \mathbf{V}^{T}$, where $\mathbf{V}$ and $\mathbf{D}$ are the same eigenvectors and eigenvalues, respectively, defined above.
 
 # Learn by coding
 
-```{r data, warning = FALSE, message = FALSE}
+Let us start by generating sampling 1000 (n) observations from a multivariate normal distribution.
+In this example, we use a block structure in the correlation matrix to generate a collection of 4 items (p) that can be summarized well by two principal components (K).
 
-some <- 1
+```{r data, warning = FALSE, message = FALSE}
+# Generate data ----------------------------------------------------------------
+
+# Fixed parameters
+n <- 1e3  # sample size
+p <- 4    # final number of items
+K <- 2    # target number of components
+rho <- .8 # Fixed correlation between observed items
+
+# Define correlation matrix with blocks
+Sigma_K <- lapply(1:K, function (x){
+    Sigma <- matrix(rho,
+                    nrow = p/K,
+                    ncol = p/K)
+            diag(Sigma) <- 1
+            Sigma
+})
+Sigma <- Matrix::bdiag(Sigma_K)
+
+# Define vector of observed item means
+mu <- rep(5, p)
+
+# Sample data from multivaraite normal distribution
+set.seed(1235)
+X <- MASS::mvrnorm(n, mu, Sigma)
+
+# Scale it for future use in PCA
+X <- scale(X)
 
 ```
+
+## PCA as SVD
+
+As we discussed, PCA can be obtained as the SVD of $X$.
+
+```{r pca-svd, warning = FALSE, message = FALSE}
+# PCA as singular value decomposition of X -------------------------------------
+
+# Perform SVD
+uSVt  <- svd(X)
+
+# Extract objects
+U     <- uSVt$u
+Sigma <- diag(uSVt$d)
+V     <- uSVt$v
+
+# Define Pc loadings
+
+# Compute the PC scores
+T_svd <- U %*% Sigma
+
+# Compute the PC scores (equivalent way)
+T_svd <- X %*% V
+
+# Compute cumulative proportion of explained variance
+CPVE_svd <- cumsum(prop.table(diag(Sigma)^2))
+
+```
+
+## PCA as eigenvalue decomposition
+
+PCA can also be obtained as the eigenvalue decomposition of the cross-product matrix of $X$
+
+```{r pca-eigen-xtx, warning = FALSE, message = FALSE}
+# PCA as eigenvalue decomposition of XtX --------------------------------------------
+
+# Compute the cross-product matrix XtX
+XtX <- t(X) %*% X
+
+# Perform eigenvalue decomposition
+eigenmat_XtX <- eigen(XtX)
+
+# Extract objects
+eigenvalues_XtX <- eigenmat_XtX$values
+eigenvectors_XtX <- eigenmat_XtX$vectors
+
+# Compute the PC scores
+T_eig_XtX <- X %*% eigenvectors_XtX
+
+# Compute cumulative proportion of explained variance
+CPVE_eig_XtX <- cumsum(prop.table(eigenvalues_XtX))
+
+```
+
+It can also be computed by the eigenvalue decomposition of the correlation matrix of $X$.
+
+```{r pca-eigen-corx, warning = FALSE, message = FALSE}
+# PCA as eigenvalue decomposition of cor(X) -----------------------------------------
+
+# Compute the correlation matrix
+X_cormat <- cor(X, method = "pearson")
+
+# Perform eigenvalue decomposition
+eigenmaT_eig_corx <- eigen(X_cormat)
+
+# Extrac objects
+eigenvalues_corx <- eigenmaT_eig_corx$values
+eigenvectors_corx <- eigenmaT_eig_corx$vectors
+
+# Compute the PC scores
+T_eig_corx <- X %*% eigenvectors_corx
+
+# Compute cumulative proportion of explained variance
+CPVE_corx <- cumsum(prop.table(eigenvalues_corx))
+
+```
+
+## Compare
+
+To check our results we can compare the PC scores, CPVEs, and loading matrices with the results of the standard R function to compute PCA (`prcomp`).
+Let's compute the PCs and all the relevant quantities with the `prcomp`:
+
+```{r compare, warning = FALSE, message = FALSE}
+# PCA with prcomp --------------------------------------------------------------
+
+# Compute PCA with prcomp
+PCX <- prcomp(X)
+
+# Extract objects
+T_prcomp <- PCX$x
+eigenvalues_prcomp <- PCX$sdev
+V_prcomp <- as.matrix(PCX$rotation)
+CPVE_PCX <- cumsum(prop.table(eigenvalues_prcomp^2))
+
+```
+
+To compare the PC score and loading matrices we will use [Tucker congruence](https://en.wikipedia.org/wiki/Congruence_coefficient) coefficient.
+This is a measure of similarity between matrices that ranges between -1 and +1.
+A congruence of 1 means the two matrices are identical.
+To compare the vectors of the cumulative proportion of explained variance we will simply print the vectors one next to the other.
+In the following, you can see that all of ways to find solutions to the PCA problem are identical.
+
+### PC scores
+```{r compare-pcs, warning = FALSE, message = FALSE}
+# Compare solutions ------------------------------------------------------------
+
+# Load package for tucker congruence
+library(RegularizedSCA)
+
+# > PC scores ------------------------------------------------------------------
+
+# prcomp results = SVD
+TuckerCoef(T_prcomp, T_svd)$tucker_value
+
+# prcomp results = eigenvalues_XtX
+TuckerCoef(T_prcomp, T_eig_XtX)$tucker_value
+
+# prcomp results = eigenvectors_corx
+TuckerCoef(T_prcomp, T_eig_corx)$tucker_value
+
+```
+
+### Component loadings
+```{r compare-load, warning = FALSE, message = FALSE}
+# > Component loadings ---------------------------------------------------------
+
+# prcomp results = SVD
+TuckerCoef(V_prcomp, V)$tucker_value
+
+# prcomp results = eigenvalues_XtX
+TuckerCoef(V_prcomp, eigenvectors_XtX)$tucker_value
+
+# prcomp results = eigenvectors_corx
+TuckerCoef(V_prcomp, eigenvectors_corx)$tucker_value
+
+```
+
+### Cumulative proportion of explained variance
+```{r compare-cpve, warning = FALSE, message = FALSE}
+# Cumulative proportion of explained variance
+data.frame(
+    SVD = CPVE_svd,
+    eig_XtX = CPVE_eig_XtX,
+    eig_corx = CPVE_corx,
+    prcomp = CPVE_PCX
+)
+
+```
+
 
 # TL;DR, just give me the code!
 ```{r TLDR, ref.label = knitr::all_labels(), echo=TRUE, eval=FALSE}

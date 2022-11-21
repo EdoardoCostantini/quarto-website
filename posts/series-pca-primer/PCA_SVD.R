@@ -84,6 +84,7 @@
   head(PCX$x)
 
   # PVE
+  cumsum(prop.table(eigen(cor(X))$values))
   cumsum(prop.table(eigen(XtX)$values))
   prop.table(PCX$sdev)
 

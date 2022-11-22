@@ -61,8 +61,7 @@ arrows(
     y0 = rep(0, p),
     x1 = V[, PC_a] * sf, 
     y1 = V[, PC_b] * sf,
-    col = "darkgray",
-    arr.type = "triangle"
+    col = "darkgray"
 )
 
 # Add names of variables per arrow

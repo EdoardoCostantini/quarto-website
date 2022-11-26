@@ -23,7 +23,7 @@ This are some R notes:
 ```{r code-notes}
 # Set up environment -----------------------------------------------------------
 
-    # Load pacakge that implements this method
+    # Load package that implements this method
     library("PCovR", verbose = FALSE, quietly = TRUE)
 
     # Load example data from PCovR package
@@ -143,6 +143,50 @@ This are some R notes:
 
     # Compare to one found by package
     pcovr_out$a - alpha_ML
+
+# Reverting to PCA -------------------------------------------------------------
+
+# Use alpha 1
+alpha <- 1
+
+# Estimate PCovR quantities
+pcovr_out <- PCovR::pcovr_est(
+    X = X,
+    Y = y,
+    a = alpha,
+    r = npcs # fixed number of components
+)
+
+# Perform regular SVD of X
+uSVt <- svd(X)
+
+# Extract objects
+U <- uSVt$u
+D <- diag(uSVt$d)
+V <- uSVt$v
+
+# Component loadings
+P_hat <- P_psych <- (I - 1)^{-1 / 2} * V %*% D
+
+# Component weights
+W_hat <- W_psych <- (I - 1)^{1 / 2} * V %*% solve(D)
+
+# Component scores
+T_hat <- T_psych <- (I - 1)^{1 / 2} * U
+T_hat <- T_psych_xw <- X %*% W_hat
+
+# The scores obtained with PCovR are the same as the ones obtained with PCA
+TuckerCoef(pcovr_out$Te, T_psych[, 1:npcs])
+
+# The loadings obtained with PCovR are the same as the ones obtained with PCA
+TuckerCoef(t(pcovr_out$Px), P_psych[, 1:npcs])
+
+# The weights obtained with PCovR are the same as the ones obtained with PCA
+TuckerCoef(pcovr_out$W, W_psych[, 1:npcs])
+
+# P is now proportional to W
+TuckerCoef(pcovr_out$W, t(pcovr_out$Px))
+
 ```
 
 # TL;DR, just give me the code!

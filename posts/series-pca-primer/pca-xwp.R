@@ -19,7 +19,7 @@ rho <- .8 # Fixed correlation between observed items
 
 # Define correlation matrix with blocks
 Sigma_K <- lapply(1:K, function(x) {
-    D <- matrix(rho,
+    Sigma <- matrix(rho,
         nrow = J / K,
         ncol = J / K
     )

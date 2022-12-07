@@ -27,7 +27,7 @@ paper_mipcr:
   year: 2022
   github: https://github.com/EdoardoCostantini/mipca_compare
   dataset: https://github.com/amices/mice/blob/master/data/fdd.rda
-  shiny: https://edoardocostantini.shinyapps.io/shiny-mi-pca-plot/?_ga=2.187725984.929064409.1659041054-1213691852.1658930327
+  shiny: https://edoardocostantini.shinyapps.io/plotmipca/
   preprint: https://arxiv.org/pdf/2206.15107.pdf
   published_url: https://arxiv.org/pdf/2206.15107.pdf
   venue: tbd

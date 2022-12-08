@@ -160,5 +160,8 @@
   },
   "posts/series-sm-course/t-test.qmd": {
     "t-test.html": "0a1ca323"
+  },
+  "posts/series-pca-primer/pca-biplots.qmd": {
+    "pca-biplots.html": "9278b98a"
   }
 }

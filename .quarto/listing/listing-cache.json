@@ -3,12 +3,6 @@
     "series-pca.qmd": [
       "posts/series-pca-primer"
     ],
-    "series-sm-course.qmd": [
-      "posts/series-sm-course"
-    ],
-    "series-sampling.qmd": [
-      "posts/series-sampling"
-    ],
     "all-posts.qmd": [
       "posts"
     ]

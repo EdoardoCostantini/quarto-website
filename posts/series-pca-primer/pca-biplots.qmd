@@ -21,7 +21,6 @@ Let us start by loading the `ggfortify` R package, which provides pleasant looki
 We will work with the first four columns of the `iris` data, which report the length and width of petals and sepals in plants for the iris flowering plant.
 
 ```{r prep, warning = FALSE, message = FALSE}
-
 # Prepare environment ----------------------------------------------------------
 
 # Load packages (install if you don't have it)
@@ -35,7 +34,6 @@ X <- iris[1:4]
 We then use the `prcomp` R function to compute the PCs of `X`. We specify the `prcomp` function to not scale and standardize the data because we rather have more control over how the standardization is performed.
 
 ```{r}
-
 # Perform PCA ------------------------------------------------------------------
 
 # Center and standardize the data
@@ -59,7 +57,7 @@ We specify which data should be plotted (`data = X`), and we require the loading
 Now we replicate this plot by doing all the work ourselves. First, let's start by computing the PC scores ourselves by taking the singular value decomposition of X and computing the PC scores $T$.
 
 ```{r}
-# Getting to the biplots ------------------------------------------------------------------
+# Getting to the biplots -------------------------------------------------------
 
 # SVD of X
 x_svd <- svd(X_sc)
@@ -78,6 +76,7 @@ We can now make a scatter plot of the observations based on how they score on th
 
 ```{r}
 # > Simple scatter plot --------------------------------------------------------
+
 plot(
     x = T[, 1], xlab = "PC1",
     y = T[, 2], ylab = "PC2"

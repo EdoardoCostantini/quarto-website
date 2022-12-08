@@ -3,6 +3,8 @@ project:
 
 website:
   title: "Edo"
+  site-url: 'https://edoardocostantini.github.io'
+  site-path: '/'
   navbar:
     left:
       - text: "Digital garden"

@@ -65,7 +65,7 @@ for _, data in yaml_data.items():
         )
 ```
 
-## Published
+## Completed
 
 ```{python}
 #| label: "published-year"

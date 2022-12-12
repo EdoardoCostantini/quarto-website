@@ -18,7 +18,7 @@ In these notes, I show the computations used by the `PCovR` R-package to perform
 
 # R code notes
 
-This are some R notes:
+These are some R notes:
 
 ```{r code-notes}
 # Set up environment -----------------------------------------------------------

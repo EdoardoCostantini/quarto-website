@@ -11,8 +11,8 @@ bibliography: ../../resources/bibshelf.bib
 # Introduction
 
 Principal covariates regression is a method to analyze the relationship between sets of multivariate data in the presence of highly-collinear variables.
-Compared to regular principal component regression, principal covariates regression PCovR extracts components that account for much of the variability in a set of $X$ variables and that correlated well with a set of $Y$ variables.
-For more information, I recommend reading [@vervloetEtAl:2015] and [@de1992principal, @de1992principal].
+Compared to regular principal component regression, principal covariates regression PCovR extracts components that account for much of the variability in a set of $X$ variables and that correlate well with a set of $Y$ variables.
+For more information, I recommend reading @vervloetEtAl:2015 and @deJongKiers:1992.
 In this post, you can find my R code notes on this method.
 In these notes, I show the computations used by the `PCovR` R-package to perform the method.
 

@@ -12,7 +12,7 @@ bibliography: ../../resources/bibshelf.bib
 
 Principal covariates regression is a method to analyze the relationship between sets of multivariate data in the presence of highly-collinear variables.
 Compared to regular principal component regression, principal covariates regression PCovR extracts components that account for much of the variability in a set of $X$ variables and that correlated well with a set of $Y$ variables.
-For more information, I recommend reading [@vervloet2015pcovr, @vervloet2015pcovr] and [@de1992principal, @de1992principal].
+For more information, I recommend reading [@vervloetEtAl:2015] and [@de1992principal, @de1992principal].
 In this post, you can find my R code notes on this method.
 In these notes, I show the computations used by the `PCovR` R-package to perform the method.
 
@@ -25,6 +25,9 @@ This are some R notes:
 
     # Load package that implements this method
     library("PCovR", verbose = FALSE, quietly = TRUE)
+
+    # Load package for measure of similarity (TuckerCoef)
+    library("RegularizedSCA", verbose = FALSE, quietly = TRUE)
 
     # Load example data from PCovR package
     data(alexithymia)
@@ -165,6 +168,9 @@ U <- uSVt$u
 D <- diag(uSVt$d)
 V <- uSVt$v
 
+# Define number of rowsum
+I <- nrow(X)
+
 # Component loadings
 P_hat <- P_psych <- (I - 1)^{-1 / 2} * V %*% D
 
@@ -176,16 +182,16 @@ T_hat <- T_psych <- (I - 1)^{1 / 2} * U
 T_hat <- T_psych_xw <- X %*% W_hat
 
 # The scores obtained with PCovR are the same as the ones obtained with PCA
-TuckerCoef(pcovr_out$Te, T_psych[, 1:npcs])
+TuckerCoef(pcovr_out$Te, T_psych[, 1:npcs])$tucker_value
 
 # The loadings obtained with PCovR are the same as the ones obtained with PCA
-TuckerCoef(t(pcovr_out$Px), P_psych[, 1:npcs])
+TuckerCoef(t(pcovr_out$Px), P_psych[, 1:npcs])$tucker_value
 
 # The weights obtained with PCovR are the same as the ones obtained with PCA
-TuckerCoef(pcovr_out$W, W_psych[, 1:npcs])
+TuckerCoef(pcovr_out$W, W_psych[, 1:npcs])$tucker_value
 
 # P is now proportional to W
-TuckerCoef(pcovr_out$W, t(pcovr_out$Px))
+TuckerCoef(pcovr_out$W, t(pcovr_out$Px))$tucker_value
 
 ```
 

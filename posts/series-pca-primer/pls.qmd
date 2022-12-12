@@ -339,7 +339,7 @@ First we want to standardize the predictors.
 
 ```
 
-Then we want to set the intial values
+Then we want to set the initial values
 
 ```{r initial}
 # 2. Set initial vlaues --------------------------------------------------------
@@ -361,7 +361,7 @@ Then we want to set the intial values
 ```
 
 Finally, we can move to the estimation step.
-First we create the number
+First, we create the container objects to store results
 
 ```{r}
 # 3. Estimation ----------------------------------------------------------------
@@ -404,7 +404,6 @@ Then we move to the proper estimation.
 
     # Fit PCR model w/ plsdof package
     pls_fit_plsdof <- plsdof::pls.model(as.matrix(Xstd), y)
-    pls_fit_plsdof$coefficients[, 3+1]
 
     # Compare predictions using up to a given m
     m <- 3
@@ -432,7 +431,7 @@ Then we move to the proper estimation.
 
 ## Prediction of new data
 
-How do we predict new data? Let's start by generating data form scratch
+How do we predict new data? Let's start by generating data from scratch
 
 ```{r prediction}
 # Prediction -------------------------------------------------------------------
@@ -499,6 +498,7 @@ How do we predict new data? Let's start by generating data form scratch
         ), 5
         )
     )
+    
 ```
 
 ## Degrees of freedom of the residuals

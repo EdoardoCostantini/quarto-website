@@ -280,13 +280,13 @@ orthogonalize <- function(vec1, vec2) {
 ```
 
 We start by loading a package already implementing the PLS algorithm and some data to test our code.
-We load the `PCovR` package to use the `alexithymia` data which reports the scores of 122 Blegian psychology stundets on three scales:
+We load the `PCovR` package to use the `alexithymia` data which reports the scores of 122 Belgian psychology students on three scales:
 
 - 20-item Toronto Alexithymia Scale (TAS-20) measuring the inability to recognize emotions.
 - Center for Epidemiological Studies Depression Scale (CES-D) measuring depression.
 - Rosenberg Self-Esteem Scale (RSE).
 
-The main objective of the data collection was to asssess how well TAS-20 can predict depression and self-esteem[^1].
+The main objective of the data collection was to assess how well TAS-20 can predict depression and self-esteem[^1].
 
 [^1]: Check the helpfile for the `alexithymia` data in the `PCovR` package for more information.
 

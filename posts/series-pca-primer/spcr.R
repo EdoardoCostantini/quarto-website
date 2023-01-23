@@ -11,36 +11,54 @@ library("superpc")
 
 # Run example functions --------------------------------------------------------
 
+# Set seed
 set.seed(464)
 
+# Define a matrix of data
 x <- matrix(rnorm(1000*100), ncol = 100)
-v1 <- svd(x[1:80,])$v[,1]
+
+# Compute a component
+v1 <- svd(x[1:80, ])$v[, 1]
+
+# Compute an outcome variable based on this component
 y <- 2 + 5 * v1 + .05 * rnorm(100)
 
+# Define feature names
+featurenames <- paste("X", as.character(1:1000), sep = "")
+
+# Define a train data
+data.train <- list(x = x, y = y, featurenames = featurenames)
+
+# Define a test data
 xtest <- x
 ytest <- 2 + 5 * v1 + .05 * rnorm(100)
-
-featurenames <- paste("X", as.character(1:1000),sep="")
-
-# Create train and test data
-data.train <- list(x = x, y = y, featurenames = featurenames)
 data.test <- list(x = xtest, y = ytest, featurenames = featurenames)
 
-# train  the model. This step just computes the scores for each feature
-train.obj <- superpc.train(data.train, type = "regression")
+# Train the model (computes the scores for each feature)
+train.obj <- superpc.train(
+  data = data.train,
+  type = "regression"
+)
 
-# cross-validate the model
-cv.obj <- superpc.cv(train.obj, data.train)
+# Cross-validate the model
+cv.obj <- superpc.cv(
+  fit = train.obj,
+  data = data.train
+)
 
-#plot the cross-validation curves. From this plot we see that the 1st
-# principal component is significant and the best threshold  is around 0.7
-
+# Plot the cross-validation curves
 superpc.plotcv(cv.obj)
 
+# Note: From this plot we see that the 1st principal component is significant 
+#       and the best threshold is around 0.7
+
+# What is in the cross-validation object
 ls(cv.obj)
 
+# 
 cv.obj$v.preval
 
+# Obtain predictions on test data
 fit.cts <- superpc.predict(train.obj,
                            data.train,
                            data.test,
@@ -122,7 +140,7 @@ nfolds <- 10
   cve <- sapply(cve_obj, "[[", 1)
   preds_active <- pred_groups[[which.min(cve)]]
 
-  # Train PCR on dotxobs sample
+  # Train PCR on dot xobs sample
   pcr_out <- pls::pcr(
     y_m ~ x_m[, preds_active, drop = FALSE],
     ncomp = npcs,
@@ -199,3 +217,404 @@ nfolds <- 10
     ))
 
   }
+
+# Cross-validation -------------------------------------------------------------
+
+# 1. process the data with the superpc.train function --------------------------
+
+# Look at the code
+superpc.train
+
+# Set up the arguments
+data <- data.train
+type <- "regression"
+s0.perc <- NULL
+
+# Sample size
+n <- length(y)
+
+# Compute vector of feature means
+xbar <- x %*% rep(1 / n, n)
+
+# Same as computing the row means
+cbind(xbar, rowMeans(x))
+
+# Compute the diagonal of the cross-product matrix between variables
+sxx <- ((x - as.vector(xbar))^2) %*% rep(1, n)
+
+# Which is the mid step for variance
+cbind(sxx, apply(x - as.vector(xbar), 1, var) * (n - 1))
+
+# Compute the cross-product matrix between X and Y
+sxy <- (x - as.vector(xbar)) %*% (y - mean(y))
+
+# Which is the mid step for covariance between the two
+cbind(sxx, apply(x - as.vector(xbar), 1, var) * (n - 1))
+
+# Total sum of squares
+syy <- sum((y - mean(y))^2)
+
+# Ratio of the two
+numer <- sxy / sxx
+
+# Compute sd?
+sd <- sqrt((syy / sxx - numer^2) / (n - 2))
+
+# add "fudge"(?) to the denominator
+if (is.null(s0.perc)) {
+  fudge <- median(sd)
+}
+if (!is.null(s0.perc)) {
+  if (s0.perc >= 0) {
+    fudge <- quantile(sd, s0.perc)
+  }
+  if (s0.perc < 0) {
+    fudge <- 0
+  }
+}
+
+# Ratio between numerator and sd
+tt <- numer / (sd + fudge)
+
+# Compute normalized correlation between y and every x
+feature.scores <- tt
+
+# Compute all of the bivariate correlations
+cor_easy <- apply(x, 1, function(j) {cor(y, j)})
+
+# How similar are the two?
+cor(feature.scores, cor_easy)
+
+# 2. Use cross-validation procedure for theta ----------------------------------
+
+# Look at the code
+superpc.cv
+
+# Set up the same arguments
+fit = train.obj
+data = data.train
+n.threshold = 20 
+n.fold = NULL
+folds = NULL
+n.components = 3
+min.features = 5 
+max.features = nrow(data.train$x)
+compute.fullcv = TRUE
+compute.preval = TRUE
+xl.mode = c(
+  "regular",
+  "firsttime", 
+  "onetime", 
+  "lasttime"
+)[1]
+xl.time = NULL
+xl.prevfit = NULL
+
+# Load a special SVD function
+mysvd <- function(x,
+                  n.components = NULL) {
+  # finds PCs of matrix x
+
+  p <- nrow(x)
+  n <- ncol(x)
+
+  # center the observations (rows)
+  feature.means <- rowMeans(x)
+  x <- t(scale(t(x), center = feature.means, scale = FALSE))
+
+  if (is.null(n.components)) {
+    n.components <- min(n, p)
+  }
+  if (p > n) {
+    a <- eigen(t(x) %*% x)
+    v <- a$vec[, 1:n.components, drop = FALSE]
+    d <- sqrt(a$val[1:n.components, drop = FALSE])
+    u <- scale(x %*% v, center = FALSE, scale = d)
+
+    return(list(
+      u = u,
+      d = d,
+      v = v,
+      feature.means = feature.means
+    ))
+  } else {
+    junk <- svd(x)
+    nc <- min(ncol(junk$u), n.components)
+
+    return(list(
+      u = junk$u[, 1:nc],
+      d = junk$d[1:nc],
+      v = junk$v[, 1:nc],
+      feature.means = feature.means
+    ))
+  }
+}
+
+# Type of fit
+type <- fit$type
+
+# Number of components
+n.components <- min(5, n.components)
+
+# Sample size
+n <- ncol(data$x)
+
+# Store the normalized correlation scores
+cur.tt <- fit$feature.scores
+
+# Define upper and lower bounds of the normalized correlation
+lower <- quantile(abs(cur.tt), 1 - (max.features / nrow(data$x)))
+upper <- quantile(abs(cur.tt), 1 - (min.features / nrow(data$x)))
+
+# Number of folds
+n.fold <- 5
+folds <- vector("list", n.fold)
+breaks <- round(seq(from = 1, to = (n + 1), length = (n.fold + 1)))
+cv.order <- sample(1:n)
+for (j in 1:n.fold) {
+  folds[[j]] <- cv.order[(breaks[j]):(breaks[j + 1] - 1)]
+}
+
+# Storing objects
+featurescores.folds <- matrix(nrow = nrow(data$x), ncol = n.fold)
+
+# Thresholds
+thresholds <- seq(from = lower, to = upper, length = n.threshold)
+
+# Other important objects
+nonzero <- rep(0, n.threshold)
+scor <- array(NA, c(n.components, n.threshold, n.fold))
+scor.preval <- matrix(NA, nrow = n.components, ncol = n.threshold)
+scor.lower <- NULL
+scor.upper <- NULL
+v.preval <- array(NA, c(n, n.components, n.threshold))
+
+# Define objects for the CV procedure
+first <- 1
+last <- n.fold
+
+# Then, let's go through the folds
+for (j in first:last) {
+  # For the j-th fold
+  # j <- 1
+
+  # Create a temporary training data
+  data.temp <- list(
+    x = data$x[, -folds[[j]]],
+    y = data$y[-folds[[j]]],
+    censoring.status = data$censoring.status[-folds[[j]]]
+  )
+
+  # What are the normalized correlations for this fold
+  cur.tt <- superpc.train(data.temp, type = type, s0.perc = fit$s0.perc)$feature.scores
+
+  # Store that
+  featurescores.folds[, j] <- cur.tt
+
+  # For every threshold check
+  for (i in 1:n.threshold) {
+    # For the i-th threshold
+    # i <- 1
+
+    # Define active set (check which normalized correlations are smaller)
+    cur.features <- (abs(cur.tt) > thresholds[i])
+
+    # If there are more then 1 variables, we do this
+    if (sum(cur.features) > 1) {
+      # Store this number
+      nonzero[i] <- nonzero[i] + sum(cur.features) / n.fold
+
+      # Compute the SVD of the active set
+      cur.svd <- mysvd(
+        x = data$x[cur.features, -folds[[j]]],
+        n.components = n.components
+      )
+
+      # Scale the data (after the fact?)
+      xtemp <- data$x[cur.features, folds[[j]], drop = FALSE]
+      xtemp <- t(scale(t(xtemp),
+        center = cur.svd$feature.means,
+        scale = FALSE
+      ))
+      cur.v.all <- scale(t(xtemp) %*% cur.svd$u,
+        center = FALSE,
+        scale = cur.svd$d
+      )
+
+      # Check how many components are available (effective number)
+      n.components.eff <- min(sum(cur.features), n.components)
+
+      # Select the PC scores that are available
+      cur.v <- cur.v.all[, 1:n.components.eff, drop = FALSE]
+
+      # Store them for this threshold value
+      v.preval[folds[[j]], 1:n.components.eff, i] <- cur.v
+
+      # Compute the F-statistic for the possible additive PCRs
+      for (k in 1:ncol(cur.v)) {
+        # For the k-th PCs
+        # k <- 3
+
+        # Compute the linear model
+        junk <- summary(lm(data$y[folds[[j]]] ~ cur.v[, 1:k]))
+
+        # Store the F statistic
+        scor[k, i, j] <- junk$fstat[1]
+      }
+    }
+  }
+}
+
+# Define two functions that compute the mean and the sd ignoring the NAs
+mean.na <- function(x) {
+  mean(x[!is.na(x)])
+}
+se.na <- function(x) {
+  val <- NA
+  if (sum(!is.na(x)) > 0) {
+    val <- sqrt(var(x[!is.na(x)]) / sum(!is.na(x)))
+  }
+  return(val)
+}
+
+# Compute the log-likelihood scores?
+lscor <- apply(log(scor), c(1, 2), mean.na)
+se.lscor <- apply(log(scor), c(1, 2), se.na)
+scor.lower <- exp(lscor - se.lscor)
+scor.upper <- exp(lscor + se.lscor)
+scor <- exp(lscor)
+
+# Compute the pre-validation
+if (compute.preval) {
+  for (i in 1:n.threshold) {
+    # i <- 1
+    for (j in 1:n.components) {
+      # j <- 1
+      if (sum(is.na(v.preval[, 1:j, i])) == 0) {
+        junk <- summary(lm(data$y ~ v.preval[, 1:j, i]))
+        scor.preval[j, i] <- junk$fstat[1]
+      }
+    }
+  }
+}
+
+# Store objects
+junk <- list(
+  thresholds = thresholds, 
+  n.threshold = n.threshold,
+  nonzero = nonzero, 
+  scor.preval = scor.preval, 
+  scor = scor,
+  scor.lower = scor.lower, 
+  scor.upper = scor.upper, 
+  folds = folds,
+  n.fold = n.fold, 
+  featurescores.folds = featurescores.folds,
+  v.preval = v.preval, 
+  compute.fullcv = compute.fullcv,
+  compute.preval = compute.preval, 
+  type = type, 
+  call = NULL
+)
+
+class(junk) <- "superpc.cv"
+
+# 2.1 Plot the likelihood ratio test statistics --------------------------------
+
+# Look at the function
+superpc.plotcv
+
+# Define the arguments
+object = junk
+cv.type = c("full", "preval")[1]
+smooth = TRUE
+smooth.df = 10
+call.win.metafile = FALSE
+
+# Define an internal function used for plotting
+error.bars <- function(x, upper, lower, width = 0.005, ...) {
+  xlim <- range(x)
+  barw <- diff(xlim) * width
+  segments(x, upper, x, lower, ...)
+  segments(x - barw, upper, x + barw, upper, ...)
+  segments(x - barw, lower, x + barw, lower, ...)
+  range(upper, lower)
+}
+
+# Define the scor object based on the cv.type
+if (cv.type == "full") {
+    scor <- object$scor
+    smooth <- FALSE
+} else {
+    scor <- object$scor.preval
+}
+
+# How many PCs where computed?
+k <- nrow(scor)
+
+# Smooth values if required
+if (smooth) {
+    for (j in 1:nrow(scor)) {
+        if (is.null(smooth.df)) {
+            om <- !is.na(scor[j, ])
+            junk <- smooth.spline(object$th[om], scor[j, 
+              om])
+            scor[j, om] <- predict(junk, object$th[om])$y
+        }
+        if (!is.null(smooth.df)) {
+            om <- !is.na(scor[j, ])
+            junk <- smooth.spline(object$th[om], scor[j, 
+              om], df = smooth.df)
+            scor[j, om] <- predict(junk, object$th[om])$y
+        }
+    }
+}
+
+# Sample size
+n.mean <- 0
+for (i in 1:object$n.fold) {
+  # i <- 1
+  n.mean <- n.mean + length(object$folds[[i]]) / object$n.fold
+}
+
+# Degrees of freedom
+denom.df <- n.mean - 1 - nrow(scor)
+
+# Define y maximum value for plot
+if (cv.type == "full") {
+  ymax <- max(
+    object$scor.upper[!is.na(object$scor.upper)],
+    qf(0.95, nrow(scor), denom.df)
+  )
+}
+if (cv.type == "preval") {
+  ymax <- max(
+    scor[!is.na(scor)],
+    qf(0.95, nrow(scor), denom.df)
+  )
+}
+
+
+# Define y-label for plot
+ylab <- "Likelihood ratio test statistic"
+
+# Make scatter-plot
+matplot(object$th, t(scor),
+  xlab = "Threshold", ylab = ylab,
+  ylim = c(0, ymax), lty = rep(1, k)
+)
+
+# Add lines
+matlines(object$th, t(scor), lty = rep(1, k))
+
+# Add references
+for (j in 1:k) {
+  #
+  abline(h = qf(0.95, j, denom.df), lty = 2, col = j)
+
+  # Add error bars
+  if (cv.type == "full") {
+    delta <- ((-1)^j) * diff(object$th)[1] / 4
+    error.bars(object$th + delta * (j > 1), t(object$scor.lower[j, ]), t(object$scor.upper[j, ]), lty = 2, col = j)
+  }
+}

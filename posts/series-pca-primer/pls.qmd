@@ -368,6 +368,7 @@ First, we create the container objects to store results
 
     # Preparing objects
     z <- matrix(NA, nrow = n, ncol = (M + 1)) # container for directions
+    W <- matrix(NA, nrow = p, ncol = (M + 1)) # container for wights
     theta_hat <- rep(NA, (M + 1)) # container for thetas
 
 ```
@@ -399,7 +400,8 @@ Then we move to the proper estimation.
         y ~ as.matrix(X),
         ncomp = M,
         method = "oscorespls",
-        validation = "none"
+        validation = "none",
+        scale = TRUE
     )
 
     # Fit PCR model w/ plsdof package
@@ -453,7 +455,9 @@ How do we predict new data? Let's start by generating data from scratch
         scale = TRUE,
         center = TRUE,
         method = "oscorespls",
-        validation = "none"
+        validation = "none",
+        x = TRUE,
+        model = TRUE
     )
     out_plsdof <- plsdof::pls.model(X, y, compute.DoF = TRUE, Xtest = Xtest, ytest = NULL)
 

@@ -185,7 +185,7 @@ pool.imp <- pool(fit.imp)
     mice_comp <- pool.imp$pooled[2, -(1:2)]
 
     # Put together
-    rbind(manual, mice_comp)
+    rbind(manual = manual, mice_comp = mice_comp)
 ```
 
 

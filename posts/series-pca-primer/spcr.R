@@ -68,9 +68,63 @@ fit.cts <- superpc.predict(train.obj,
 
 # Manual approach --------------------------------------------------------------
 
+# Compute the cross-validation MSE for a given number of predictors
+.spcrCVE <- function(dv, pred, part, K = 10, npcs = 1) {
+  # Input examples
+  # dv   = mtcars[, 1]
+  # pred = mtcars[, -1]
+  # K    = 10
+  # npcs = 5
+  # part = sample(rep(1 : K, ceiling(nrow(mtcars) / K)))[1 : nrow(mtcars)]
+
+  # Define a safe number of pcs
+  q <- min(npcs, ncol(pred))
+
+  # Create an empty storing object
+  mse <- rep(NA, K)
+
+  # Loop over K folds
+  for (k in 1:K) {
+    # Partition data:
+    Xtr <- pred[part != k, , drop = FALSE]
+    Xva <- pred[part == k, , drop = FALSE]
+    ytr <- dv[part != k]
+    yva <- dv[part == k]
+
+    # Calibrate PCR on training datest
+    pcr_out <- pls::pcr(
+      ytr ~ Xtr,
+      ncomp = q,
+      scale = TRUE,
+      center = TRUE,
+      validation = "none"
+    )
+
+    # Get prediction on validation data set
+    yva_hat <- predict(pcr_out, newdata = Xva, ncomp = q, type = "response")
+
+    # Save MSE
+    mse[k] <- MLmetrics::MSE(
+      y_pred = yva_hat,
+      y_true = yva
+    )
+  }
+
+  # Return the CVE:
+  cve <- sum(mse * (table(part) / length(part)))
+
+  # Return
+  return(list(
+    cve = cve,
+    npcs = q
+  ))
+}
+
+# Prepare train data
 x_m <- t(x)
   colnames(x_m) <- featurenames
 
+# Prepare test data
 x_m_test <- matrix(rnorm(25*1000), ncol = 1e3)
   colnames(x_m_test) <- featurenames
 
@@ -79,144 +133,90 @@ theta = seq(0.01, .99, by = .01)
 npcs <- 5
 nfolds <- 10
 
-  # Obtain R-squared for all simple linear regression models
-  r2_vec <- apply(x_m, 2, function(j) {
-    sqrt(summary(lm(y_m ~ j))$r.squared)
-  })
+# Obtain R-squared for all simple linear regression models
+r2_vec <- apply(x_m, 2, function(j) {
+  sqrt(summary(lm(y_m ~ j))$r.squared)
+})
 
-  # DEfine predictor groups (pred groups) based on different theta
-  pred_groups <- lapply(theta, function(m) {
-    preds <- colnames(x_m)[r2_vec >= m]
-    if (length(preds) >= 1) {
-      preds
-    } else {
-      NULL
-    }
-  })
-
-  # If theta used lead only to empty pred groups, say so
-  if(all(sapply(pred_groups, is.null)) == TRUE){
-    stop(
-      paste0(
-        "The threshold values used are too high. Try using a lower range."
-      )
-    )
+# DEfine predictor groups (pred groups) based on different theta
+pred_groups <- lapply(theta, function(m) {
+  preds <- colnames(x_m)[r2_vec >= m]
+  if (length(preds) >= 1) {
+    preds
+  } else {
+    NULL
   }
+})
 
-  # Drop empty pred_groups slots
-  pred_groups <- pred_groups[!sapply(pred_groups, is.null)]
-
-  # Drop possible duplicated pred_groups slots
-  pred_groups <- unique(pred_groups)
-
-  # Drop preds groups that are smaller than required npcs
-  pred_groups <- pred_groups[sapply(pred_groups, length) >= npcs]
-
-  # If there is no pred group with enough predictors for the required npcs, say so
-  if(length(pred_groups) == 0){
-    stop(
-      paste0(
-        "There is no threshold value that can select enough predictors to extract ",
-        npcs, " PCs. Try using a smaller npcs or lower theta."
-      )
+# If theta used lead only to empty pred groups, say so
+if (all(sapply(pred_groups, is.null)) == TRUE) {
+  stop(
+    paste0(
+      "The threshold values used are too high. Try using a lower range."
     )
-  }
-
-  # Create a partition vector
-  part <- sample(rep(1:nfolds, ceiling(nrow(x_m) / nfolds)))[1:nrow(x_m)]
-
-  # Obtain Cross-validation error
-  cve_obj <- lapply(pred_groups, function(set) {
-    .spcrCVE(
-      dv = y_m,
-      pred = x_m[, set, drop = FALSE],
-      K = nfolds,
-      part = part,
-      npcs = npcs
-    )
-  })
-
-  # Extract CVEs
-  cve <- sapply(cve_obj, "[[", 1)
-  preds_active <- pred_groups[[which.min(cve)]]
-
-  # Train PCR on dot xobs sample
-  pcr_out <- pls::pcr(
-    y_m ~ x_m[, preds_active, drop = FALSE],
-    ncomp = npcs,
-    scale = TRUE,
-    center = TRUE,
-    validation = "none"
   )
+}
 
-  # Define sigma
-  RSS <- sqrt(sum(pcr_out$residuals^2))
-  sigma <- RSS / (nrow(x_m) - npcs - 1)
+# Drop empty pred_groups slots
+pred_groups <- pred_groups[!sapply(pred_groups, is.null)]
 
-  # Get prediction on (active) missing part
-  yhat <- predict(
-    object = pcr_out,
-    newdata = x_m_test[, preds_active, drop = FALSE],
-    ncomp = npcs,
-    type = "response"
+# Drop possible duplicated pred_groups slots
+pred_groups <- unique(pred_groups)
+
+# Drop preds groups that are smaller than required npcs
+pred_groups <- pred_groups[sapply(pred_groups, length) >= npcs]
+
+# If there is no pred group with enough predictors for the required npcs, say so
+if (length(pred_groups) == 0) {
+  stop(
+    paste0(
+      "There is no threshold value that can select enough predictors to extract ",
+      npcs, " PCs. Try using a smaller npcs or lower theta."
+    )
   )
+}
 
-  # Add noise for imputation uncertainty
-  imputes <- yhat + rnorm(sum(wy)) * sigma
+# Create a partition vector
+part <- sample(rep(1:nfolds, ceiling(nrow(x_m) / nfolds)))[1:nrow(x_m)]
 
-  .spcrCVE <- function(dv, pred, part, K = 10, npcs = 1) {
-    # Input examples
-    # dv   = mtcars[, 1]
-    # pred = mtcars[, -1]
-    # K    = 10
-    # npcs = 5
-    # part = sample(rep(1 : K, ceiling(nrow(mtcars) / K)))[1 : nrow(mtcars)]
+# Obtain Cross-validation error
+cve_obj <- lapply(pred_groups, function(set) {
+  .spcrCVE(
+    dv = y_m,
+    pred = x_m[, set, drop = FALSE],
+    K = nfolds,
+    part = part,
+    npcs = npcs
+  )
+})
 
-    # Define a safe number of pcs
-    q <- min(npcs, ncol(pred))
+# Extract CVEs
+cve <- sapply(cve_obj, "[[", 1)
+preds_active <- pred_groups[[which.min(cve)]]
 
-    # Create an empty storing object
-    mse <- rep(NA, K)
+# Train PCR on dot xobs sample
+pcr_out <- pls::pcr(
+  y_m ~ x_m[, preds_active, drop = FALSE],
+  ncomp = npcs,
+  scale = TRUE,
+  center = TRUE,
+  validation = "none"
+)
 
-    # Loop over K folds
-    for (k in 1:K) {
+# Define sigma
+RSS <- sqrt(sum(pcr_out$residuals^2))
+sigma <- RSS / (nrow(x_m) - npcs - 1)
 
-      # Partition data:
-      Xtr <- pred[part != k, , drop = FALSE]
-      Xva <- pred[part == k, , drop = FALSE]
-      ytr <- dv[part != k]
-      yva <- dv[part == k]
+# Get prediction on (active) missing part
+yhat <- predict(
+  object = pcr_out,
+  newdata = x_m_test[, preds_active, drop = FALSE],
+  ncomp = npcs,
+  type = "response"
+)
 
-      # Calibrate PCR on training datest
-      pcr_out <- pls::pcr(
-        ytr ~ Xtr,
-        ncomp = q,
-        scale = TRUE,
-        center = TRUE,
-        validation = "none"
-      )
-
-      # Get prediction on validation data set
-      yva_hat <- predict(pcr_out, newdata = Xva, ncomp = q, type = "response")
-
-      # Save MSE
-      mse[k] <- MLmetrics::MSE(
-        y_pred = yva_hat,
-        y_true = yva
-      )
-
-    }
-
-    # Return the CVE:
-    cve <- sum(mse * (table(part) / length(part)))
-
-    # Return
-    return(list(
-      cve = cve,
-      npcs = q
-    ))
-
-  }
+# Add noise for imputation uncertainty
+imputes <- yhat + rnorm(sum(wy)) * sigma
 
 # Cross-validation -------------------------------------------------------------
 
@@ -293,7 +293,7 @@ superpc.cv
 # Set up the same arguments
 fit = train.obj
 data = data.train
-n.threshold = 20 
+n.threshold = 10 
 n.fold = NULL
 folds = NULL
 n.components = 3
@@ -430,7 +430,7 @@ for (j in first:last) {
         n.components = n.components
       )
 
-      # Scale the data (after the fact?)
+      # Scale unseen data
       xtemp <- data$x[cur.features, folds[[j]], drop = FALSE]
       xtemp <- t(scale(t(xtemp),
         center = cur.svd$feature.means,
@@ -453,12 +453,12 @@ for (j in first:last) {
       # Compute the F-statistic for the possible additive PCRs
       for (k in 1:ncol(cur.v)) {
         # For the k-th PCs
-        # k <- 3
+        # k <- 2
 
         # Compute the linear model
         junk <- summary(lm(data$y[folds[[j]]] ~ cur.v[, 1:k]))
 
-        # Store the F statistic
+        # Store the F statistic (used as a scaled value of the chi-square stat)
         scor[k, i, j] <- junk$fstat[1]
       }
     }
@@ -478,7 +478,7 @@ se.na <- function(x) {
 }
 
 # Compute the log-likelihood scores?
-lscor <- apply(log(scor), c(1, 2), mean.na)
+lscor <- apply(log(scor), c(1, 2), mean.na) # average on a more symmetrical scale
 se.lscor <- apply(log(scor), c(1, 2), se.na)
 scor.lower <- exp(lscor - se.lscor)
 scor.upper <- exp(lscor + se.lscor)

@@ -5,6 +5,9 @@
 # Modified:  2023-02-02
 # Notes: 
 
+# Set up -----------------------------------------------------------------------
+
+library(nnet) # for multinomial regression
 
 # Functions to compute different R^2 alternatives/generalizations --------------
 
@@ -56,7 +59,7 @@ lvs <- sapply(lm.fits, function(j) {
 L0 <- lvs[1]
 
 # Sample size
-n <- nrow(iris_dat)
+n <- nrow(iris)
 
 # Compute all types of R2
 R2.types <- data.frame(
@@ -98,7 +101,7 @@ lvs <- sapply(glm.fits, function(j) {
 L0 <- lvs[1]
 
 # Sample size
-n <- nrow(iris_dat)
+n <- nrow(iris)
 
 # Compute all types of R2
 R2.types <- data.frame(

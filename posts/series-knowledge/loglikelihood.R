@@ -5,7 +5,7 @@
 # Modified:  2023-02-02
 # Notes: 
 
-# insert header here --------------------------------------------------------- 
+# Linear regression ------------------------------------------------------------
 
 # Store mtcars as a data.frame
 cars <- as.data.frame(mtcars)
@@ -226,3 +226,100 @@ poisson.model <- glm(
 
 # Extract log-likelihood value
 logLik(poisson.model)
+
+# Likelihood threshold ---------------------------------------------------------
+
+# Store mtcars as a data.frame
+cars <- as.data.frame(mtcars)
+
+# Sample size
+n <- nrow(mtcars)
+
+# Define Dv name
+DV <- "mpg"
+
+# Define univariate predictor's names
+IVs <- colnames(cars)[colnames(cars) != DV]
+
+# Fit models
+lm.fits <- lapply(c(1, IVs), function(j) {
+    lm(as.formula(paste0(DV, " ~ ", j)), data = cars)
+})
+
+# name them
+names(lm.fits) <- c("NULL", IVs)
+
+# Log-likelihood
+all_lls <- sapply(lm.fits, function(m) as.numeric(logLik(m)))
+
+# Extract the (log) likelihoods of the models
+ll0 <- all_lls[1]
+lls <- sort(all_lls[-1])
+l0 <- all_lls[1]
+ls <- exp(lls)
+
+# Number of threshold values
+ncut <- 10
+
+# Define range and sequence based on the likelihood
+
+# Wrong approach
+lrange_direct <- seq(from = min(ls), to = max(ls), length.out = ncut)
+
+# Correct approach
+lrange <- exp(seq(from = min(lls), to = max(lls), length.out = ncut))
+
+# Compare step sizes
+apply(
+    data.frame(
+        direct = lrange_direct,
+        explog = lrange
+    ), 2, diff
+)
+
+# Create an object to store selected predictors map
+store <- matrix(nrow = length(lls), ncol = ncut, dimnames = list(IVs))
+
+# Select predictors based on the wrong threshold
+for (C in 1:length(IVs)) {
+    store[, C] <- ls > lrange_direct[C]
+}
+
+# And check results
+store
+
+# Select predictors based on the appropriate threshold
+for (C in 1:length(IVs)) {
+    store[, C] <- ls > lrange[C]
+}
+
+# And check results
+store
+
+# Define the threshold range and comparison based on loglikelihoods
+lrange <- seq(from = min(lls), to = max(lls), length.out = ncut)
+
+# Create an object to store selected predictors map
+store_logl <- matrix(nrow = length(lls), ncol = ncut)
+
+# Select predictors based on the appropriate threshold
+for (C in 1:length(IVs)) {
+    store_logl[, C] <- lls > lrange[C]
+}
+
+# Compute vector of R2s
+R2 <- 1 - (exp(ll0) / ls)^(2 / n)
+
+# Define the threshold range and comparison based on R2
+R2range <- seq(from = min(R2), to = max(R2), length.out = ncut)
+
+# Create an object to store selected predictors map
+store_R2 <- matrix(nrow = length(lls), ncol = ncut, dimnames = list(IVs))
+
+# Select predictors based on the appropriate threshold
+for (C in 1:length(R2range)) {
+    store_R2[, C] <- R2 > R2range[C]
+}
+
+# Differences?
+store_R2 - store_logl

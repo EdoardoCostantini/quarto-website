@@ -50,7 +50,7 @@ wy <- (as.logical(rbinom(n = n, size = 1, prob = probs)))
 dt$y[wy] <- NA
 
 # Impute with Bayesian imputation
-m <- 5 # number of finaldata sets
+m <- 20 # number of finaldata sets
 imp <- mice(dt, method = "norm", m = m, print = FALSE)
 
 # Fit a model to the multiple imputations
@@ -113,6 +113,10 @@ pool.imp <- pool(fit.imp)
 
 # > Relative increase in variance due to nonresponse (p. 47, eq. 2.25) --------
 
+    # Conceptual meaning
+    B / U_bar
+
+    # Correction for finite m
     r <- (B + B / m) / U_bar
 
     # Related to lambda

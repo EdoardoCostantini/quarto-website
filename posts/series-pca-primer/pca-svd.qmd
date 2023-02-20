@@ -104,16 +104,17 @@ U     <- uSVt$u
 Sigma <- diag(uSVt$d)
 V     <- uSVt$v
 
-# Define Pc loadings
-
 # Compute the PC scores
 T_svd <- U %*% Sigma
 
 # Compute the PC scores (equivalent way)
 T_svd <- X %*% V
 
+# Define eigenvalues
+eigenv_svd <- uSVt$d^2
+
 # Compute cumulative proportion of explained variance
-CPVE_svd <- cumsum(prop.table(diag(Sigma)^2))
+CPVE_svd <- cumsum(prop.table(eigenv_svd))
 
 ```
 
@@ -130,8 +131,10 @@ XtX <- t(X) %*% X
 # Perform eigenvalue decomposition
 eigenmat_XtX <- eigen(XtX)
 
-# Extract objects
+# Extract eigenvalues
 eigenvalues_XtX <- eigenmat_XtX$values
+
+# Extract component loadings
 eigenvectors_XtX <- eigenmat_XtX$vectors
 
 # Compute the PC scores
@@ -153,8 +156,10 @@ X_cormat <- cor(X, method = "pearson")
 # Perform eigenvalue decomposition
 eigenmaT_eig_corx <- eigen(X_cormat)
 
-# Extrac objects
+# Extract eigenvalues
 eigenvalues_corx <- eigenmaT_eig_corx$values
+
+# Extract component loadings
 eigenvectors_corx <- eigenmaT_eig_corx$vectors
 
 # Compute the PC scores
@@ -176,11 +181,17 @@ Let's compute the PCs and all the relevant quantities with the `prcomp`:
 # Compute PCA with prcomp
 PCX <- prcomp(X)
 
-# Extract objects
+# Extract component scores
 T_prcomp <- PCX$x
-eigenvalues_prcomp <- PCX$sdev
+
+# Extract eigenvalues
+eigenvalues_prcomp <- PCX$sdev^2
+
+# Extract component loadings
 V_prcomp <- as.matrix(PCX$rotation)
-CPVE_PCX <- cumsum(prop.table(eigenvalues_prcomp^2))
+
+# Extract cumulative explained variance
+CPVE_PCX <- cumsum(prop.table(eigenvalues_prcomp))
 
 ```
 
@@ -188,7 +199,7 @@ To compare the PC score and loading matrices we will use [Tucker congruence](htt
 This is a measure of similarity between matrices that ranges between -1 and +1.
 A congruence of 1 means the two matrices are identical.
 To compare the vectors of the cumulative proportion of explained variance we will simply print the vectors one next to the other.
-In the following, you can see that all of ways to find solutions to the PCA problem are identical.
+In the following, you can see that all of the ways to find solutions to the PCA problem are identical.
 
 ### PC scores
 ```{r compare-pcs, warning = FALSE, message = FALSE}

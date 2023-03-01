@@ -18,4 +18,4 @@ about:
       href: https://github.com/EdoardoCostantini-digital-space/resume/raw/master/pdf/resume.pdf
 ---
 
-I'm a PhD researcher at Tilburg University working on multiple imputation algorithms for survey data.
+I'm a Ph.D. candidate at Tilburg University working on multiple imputation algorithms for survey data.

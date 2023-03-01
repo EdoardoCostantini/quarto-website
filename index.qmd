@@ -1,8 +1,10 @@
 ---
 title: "About"
-image: resources/profile.jpeg
+image: resources/costantini.jpg
 about:
   template: jolla
+  # image-width: 20em
+  # image-shape: round
   links:
     - icon: github
       text: Github

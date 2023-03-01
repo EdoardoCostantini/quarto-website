@@ -76,5 +76,23 @@
   },
   "all-posts.qmd": {
     "all-posts.html": "baedf729"
+  },
+  "publications/mi-pcr.qmd": {
+    "mi-pcr.html": "f38b20b8"
+  },
+  "publications.qmd": {
+    "publications.html": "b76bd895"
+  },
+  "publications/mi-spcr.qmd": {
+    "mi-spcr.html": "a1cfe79a"
+  },
+  "publications/mi-hd.qmd": {
+    "mi-hd.html": "ed648164"
+  },
+  "research/mi-spcr.qmd": {
+    "mi-spcr.html": "0a694379"
+  },
+  "research/mi-hd.qmd": {
+    "mi-hd.html": "55374395"
   }
 }

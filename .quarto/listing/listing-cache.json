@@ -11,6 +11,13 @@
     ],
     "all-posts.qmd": [
       "posts"
+    ],
+    "publications.qmd": [
+      "publications"
+    ],
+    "research.qmd": [
+      "publications",
+      "research"
     ]
   }
 }

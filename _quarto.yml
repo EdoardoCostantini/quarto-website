@@ -14,8 +14,8 @@ website:
           - series-sm-course.qmd
           - series-sampling.qmd
       - href: research.qmd
-        text: Research
-     
+        text: Research 
+
 format:
   html:
     theme: 

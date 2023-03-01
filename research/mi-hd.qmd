@@ -1,0 +1,33 @@
+---
+title: "High-dimensional imputation for the social sciences: a comparison of state-of-the-art methods."
+slug: mi-hd
+date: '2022-02-28'
+date-format: "YYYY"
+title-block-banner: true
+about:
+  template: solana
+  links:
+    - icon: github
+      text: Github
+      href: https://github.com/EdoardoCostantini/imputeHD-comp
+    - icon: bi-clipboard-data
+      text: Data
+      href: https://doi.org/10.4232/1.13511
+    # - icon: bi-graph-up
+    #   text: Shiny
+    #   href: https://edoardocostantini.shinyapps.io/plotmipca/
+    - icon: bi-file-earmark-pdf
+      text: Preprint
+      href: https://arxiv.org/pdf/2208.13656.pdf
+    - icon: archive
+      text: arxiv
+      href: https://arxiv.org/abs/2208.13656
+    # - icon: bi-file-earmark-pdf
+    #   text: Published article
+    #   href: 
+categories: [Work in progress]
+bibliography: ../resources/bibshelf.bib
+nocite: '@costantiniEtAl:2022a'
+---
+
+# Citation

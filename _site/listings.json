@@ -40,5 +40,21 @@
       "/posts/series-knowledge/ridge.html",
       "/posts/series-em/sweep.html"
     ]
+  },
+  {
+    "listing": "/publications.html",
+    "items": [
+      "/publications/mi-spcr.html",
+      "/publications/mi-pcr.html",
+      "/publications/mi-hd.html"
+    ]
+  },
+  {
+    "listing": "/research.html",
+    "items": [
+      "/research/mi-spcr.html",
+      "/research/mi-pcr.html",
+      "/research/mi-hd.html"
+    ]
   }
 ]

@@ -17,7 +17,7 @@ about:
       href: 'mailto:e.costantini@tilburguniversity.edu'
     - icon: person
       text: Resume
-      href: https://github.com/EdoardoCostantini/resume/blob/master/pdf/main.pdf
+      href: https://github.com/EdoardoCostantini/resume/raw/master/pdf/main.pdf
 ---
 
 I'm a Ph.D. candidate at Tilburg University working on multiple imputation algorithms for survey data.

@@ -220,6 +220,23 @@ imputes <- yhat + rnorm(sum(wy)) * sigma
 
 # Cross-validation -------------------------------------------------------------
 
+# Define a matrix of data
+x <- t(as.matrix(mtcars[1:15, -1]))
+
+# Compute an outcome variable based on this component
+y <- as.matrix(mtcars[1:15, 1])
+
+# Define feature names
+featurenames <- colnames(x)
+
+# Define a train data
+data.train <- list(x = x, y = y, featurenames = featurenames)
+
+# Define a test data
+xtest <- t(as.matrix(mtcars[-c(1:15), -1]))
+ytest <- as.matrix(mtcars[-c(1:15), 1])
+data.test <- list(x = xtest, y = ytest, featurenames = featurenames)
+
 # 1. process the data with the superpc.train function --------------------------
 
 # Look at the code
@@ -367,7 +384,7 @@ lower <- quantile(abs(cur.tt), 1 - (max.features / nrow(data$x)))
 upper <- quantile(abs(cur.tt), 1 - (min.features / nrow(data$x)))
 
 # Number of folds
-n.fold <- 5
+n.fold <- 3
 folds <- vector("list", n.fold)
 breaks <- round(seq(from = 1, to = (n + 1), length = (n.fold + 1)))
 cv.order <- sample(1:n)

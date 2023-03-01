@@ -2,7 +2,7 @@ project:
   type: website
 
 website:
-  title: "Edo"
+  title: "Edoardo Costantini"
   site-url: 'https://edoardocostantini.github.io'
   site-path: '/'
   navbar:

@@ -1,5 +1,8 @@
 {
   "listingMap": {
+    "research.qmd": [
+      "research"
+    ],
     "series-pca.qmd": [
       "posts/series-pca-primer"
     ],
@@ -11,13 +14,6 @@
     ],
     "all-posts.qmd": [
       "posts"
-    ],
-    "publications.qmd": [
-      "publications"
-    ],
-    "research.qmd": [
-      "publications",
-      "research"
     ]
   }
 }

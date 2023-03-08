@@ -6,24 +6,137 @@ date: '2022-09-20'
 slug: fmi
 categories: ["missing values"]
 bibliography: ../../resources/bibshelf.bib
+toc-location: left
+code-tools: true
+toc-depth: 4
 ---
 
 # Fraction of missing information
 
-```{r}
-# Mice computation of FMI -----------------------------------------------------
+The **fraction of missing information** (FMI) is a measure used to quantify the impact of missing data on the estimation of a parameter $(Q)$.
 
-# Load package
+> More specifically, it measures the inﬂation in the variance of the parameter estimate relative to what this variance would have been had all the data been observed.
+>
+> @savaleiRhemtulla:2012 [p478]
+
+As a measure, it is the function of the proportion of missing data, the missing data mechanism, and the imputation procedure. When applying multiple imputation, the FMI is usually estimated as:
+
+$$
+\lambda = \frac{B + \frac{B}{m}}{T}
+$$
+
+where:
+
+- $m$ is the number of imputations
+- $B$, or between imputation variation, is the variance of the parameter estimate across the $m$ imputations
+    $$
+    B = \frac{1}{m - 1} \sum^{m}_{l=1} (\hat{Q}_{l} - \bar{Q}) (\hat{Q}_{l} - \bar{Q})'
+    $$
+    where:
+    - $\hat{Q}_{l}$ is the estimate of the parameter of interest in the $l$-th imputed data
+    - $\bar{Q} = \frac{1}{m} \sum^{m}_{l=1} \hat{Q}_{l}$
+- $T$ is the total variation around the parameter estimate (as a result of the sum of the within and between imputation variation)
+    $$
+    T = \bar{U} + B + \frac{B}{m}
+    $$
+    where:
+    - $\bar{U}$ is the average of the standard errors of $Q$ ($\bar{U}_{l}$) computed on the $m$ different datasets.
+    $$
+    \bar{U} = \frac{1}{m} \sum^{m}_{l = 1} \bar{U}_{l}
+    $$
+
+As the proportion of variation attributable to the missing data, the FMI can be interpreted as follow:
+
+- $\lambda = 0$, the missing data do not add extra variation to parameter sampling variance;
+- $\lambda = 1$, the missing data cause all of the variation in the parameter estimate;
+- $\lambda > 0.5$, the influence of the imputation model on the final result is larger than that of the complete-data
+
+### Relative increase in variance due to nonresponse
+
+By replacing the denominator used in the estimation of $\lambda$ with $\bar{Q}$ we obtained a similar measure called **relative increase in variance due to nonresponse** ($riv$ or $r$):
+
+$$
+r = \frac{B + \frac{B}{m}}{\bar{Q}}
+$$
+
+This quantity is related to $\lambda$ by:
+
+$$
+r = \frac{\lambda}{1 - \lambda}
+$$
+
+### Fraction of information about Q missing due to nonresponse
+
+Finally, a related measure is the **fraction of information about $Q$ missing due to nonresponse**:
+
+$$
+\gamma = \frac{r + \frac{2}{\nu + 3}}{1+r}
+$$
+
+where $\nu$ refers to the degrees of freedom, or the number of observations after accounting for the number of parameters in the model.
+This quantity is related to $\lambda$ by:
+
+$$
+\gamma = \frac{\nu + 1}{\nu + 3} \lambda + \frac{2}{\nu + 3}
+$$
+
+The interpretation of $\gamma$ is the same as $\lambda$, but adjusted for the finite number of imputations.
+
+## Degrees of freedom
+
+The computation of the degrees of freedom is not the same as in a complete case analysis. There are actually a few different ways of computing $\nu$ for the multiple imputation of missing values.
+
+- old formula for degrees of freedom [@rubin:1987, eq. 3.1.6]
+    $$
+    \nu_{old} = (m -1)(1+ \frac{1}{r^2}) = \frac{m-1}{\lambda^2}
+    $$
+    To think about these measure, consider:
+    - if $\lambda \approx 1$, then $\nu_{old} \approx m - 1$, which occurs if close to all variation is due to nonresponse
+    - if $\lambda \approx 0$, then $\nu_{old} \approx \infty$, which occurs if close to all variation is due to sampling variation
+- observed data degrees of freedom
+    $$
+    \nu_{obs} = \frac{\nu_{com}+1}{\nu_{com}+3} \nu_{com}(1-\lambda)
+    $$
+    where $\nu_{com} = n - k$, the difference between the sample size and the number of parameters estimated.
+- adjusted degrees of freedom
+    $$
+    \nu = \frac{\nu_{old}\nu_{obs}}{\nu_{old} + \nu_{obs}}
+    $$
+    This is the measure that should be used for statistical testing of estimates after applying multiple imputation. Note the following:
+    - $\nu \le \nu_{com}$  always!
+    - $\nu = \nu_{old}$ if $\nu_{com} = \infty$
+    - $\nu = \nu_{com}$ if $\lambda = 0$
+    - $\nu < 1$ you should refrain from testing due to lack of information in the data
+    - $\nu = 0$ if $\lambda = 1$
+
+# Learn by coding
+
+Let's generate some fictitious data on which to try out the computations I described above.
+
+## Data generation
+
+First, let's load the `mice` package we will use to perform multiple imputations.
+
+```{r}
+# Environment set up -----------------------------------------------------------
+
+# Load mice package
 library(mice)
 
-# Define parameters
-n <- 50
-b0 <- 10
-b1 <- 5
-b2 <- 5
-b3 <- 0
+```
 
-# Sample X data
+Then, let's sample three random variables from a multivariate normal distribution and use them to generate a dependent variable $y$.
+
+```{r}
+# Data generation --------------------------------------------------------------
+
+# Set seed
+set.seed(20230308)
+
+# Define data generation model parameters
+n <- 50     # sample size
+
+# Sample X data from a multivariate normal distribution
 X <- MASS::mvrnorm(
     n = n,
     mu = rep(0, 3),
@@ -34,12 +147,23 @@ X <- MASS::mvrnorm(
     ), nrow = 3)
 )
 
+# Data generation model parameter values
+b0 <- 10    # intercept
+b1 <- 5     # regression coefficients
+b2 <- 5
+b3 <- 0
+
 # Sample Y from DGM
 y <- b0 + b1 * X[, 1] + b2 * X[, 2] + b3 * X[, 3] + rnorm(n)
 
 # Put together in a data frame
 dt <- data.frame(y = y, X = X)
 
+```
+
+Finally, impose missing values by defining a vector of response probabilities based on the second column of $X$.
+
+```{r}
 # Compute the probabilities of nonresponse:
 probs <- plogis(X[, 2])
 
@@ -48,85 +172,140 @@ wy <- (as.logical(rbinom(n = n, size = 1, prob = probs)))
 
 # Impose missingness
 dt$y[wy] <- NA
+```
 
-# Impute with Bayesian imputation
-m <- 20 # number of finaldata sets
-imp <- mice(dt, method = "norm", m = m, print = FALSE)
+We can now impute the data with the mice algorithm as implemented in the `mice()` R function. Let's obtain 20 imputations ($m = 20$). Every other argument is left to its default value as their specification is not particularly relevant for this demonstration.
+
+```{r}
+# Number of imputations (final data sets)
+m <- 20
+
+# Impute with Bayesian imputation (norm)
+imp <- mice(dt, m = m, print = FALSE)
 
 # Fit a model to the multiple imputations
-k <- 1 + 3 # number of parameters
 fit.imp <- with(imp, lm(y ~ X.1 + X.2 + X.3))
 
 # Pool statistics
 pool.imp <- pool(fit.imp)
 
+```
+
+## FMI and variance ratios
+
+To begin with, we need to compute the pooled estimates and measures of variability we need in the formulas of $\lambda$ and $r$.
+
+### Estiamtes and variances
+
+#### $\bar{Q}_l$
+
+```{r}
 # Compute manually ------------------------------------------------------------
 # Notes: page and equation numbers refer to van Buuren 2018
 
-# > Compute Q_bar (p. 42, eq. 2.16) -------------------------------------------
+# Extract the statistic of interest from every imputed data set
+Q_bar_l <- sapply(
+    fit.imp$analyses,
+    function(x) {
+        coef(x)["X.1"]
+    }
+)
 
-    # Extract vector of estimates for the first parameter
-    Q_hat_vec <- sapply(
-        fit.imp$analyses,
-        function(x) {
-            coef(x)["X.1"]
-        }
-    )
+```
 
-    # Obtain the pooled parameter
-    Q_bar <- mean(Q_hat_vec)
+#### $\bar{Q}$
+```{r}
+# > Compute Q_bar (p. 42, eq. 2.16) --------------------------------------------
 
+# Obtain the pooled parameter
+Q_bar <- mean(Q_bar_l)
+
+```
+
+#### $\bar{U}_{l}$ and $\bar{U}$
+```{r}
 # > Compute U_bar (p. 43, eq. 2.18) -------------------------------------------
 
-    # Extract vector of standard errors
-    U_bar_l <- sapply(
-        fit.imp$analyses,
-        function(x) {
-            (coef(summary(x))["X.1", "Std. Error"])^2
-        }
-    )
+# Extract vector of standard errors
+U_bar_l <- sapply(
+    fit.imp$analyses,
+    function(x) {
+        (coef(summary(x))["X.1", "Std. Error"])^2
+    }
+)
 
-    # Obtain the pooled parameter
-    U_bar <- mean(U_bar_l)
+# Obtain the pooled parameter
+U_bar <- mean(U_bar_l)
 
+```
+
+#### $B$
+```{r}
 # > Compute B (p. 43, eq. 2.19) -----------------------------------------------
 
-    B <- sum((Q_hat_vec - Q_bar)^2) / (m - 1)
+B <- sum((Q_bar_l - Q_bar)^2) / (m - 1)
 
-    # Obtain the pooled parameter
-    U_bar <- mean(U_bar_l)
+```
 
+#### $T$
+```{r}
 # > Compute T (p. 43, eq. 2.20) -----------------------------------------------
 
-    T <- U_bar + B + B/m
+T <- U_bar + B + B/m
 
+```
+
+### Variance ratios
+
+We can now compute all of the variance ratios discussed.
+The proportion of variation attributable to the missing data ($\lambda$) can be computed with the following code:
+
+```{r}
 # > Lambda (p. 46, eq. 2.24) --------------------------------------------------
-#   Interpretation: proportion of variation attributable to the missing data
-#   - lambda = 0 -> missing data do not add extra variation to parameter 
-#                   sampling variance
-#   - lambda = 1 -> missing data causes all of the variation in the parameter 
-#                   estimate
-#   - lambda > .5 -> influence of the imputation model on the final result is 
-#                   larger than complete-data
 
-    lambda <- (B + B/m) / T
+lambda <- (B + B/m) / T
 
+```
+
+Note that, for infinite imputations $m \rightarrow \infty$, $\lambda$ is equal to the ratio $B / T$, which is the proportion of the total parameter estimate variance that is attributable to between imputation variance.
+
+```{r, eval = FALSE}
+# Conceptual lambda
+B / T
+
+```
+
+The computation of $r$ is:
+
+```{r}
 # > Relative increase in variance due to nonresponse (p. 47, eq. 2.25) --------
 
-    # Conceptual meaning
-    B / U_bar
+r <- (B + B / m) / U_bar
 
-    # Correction for finite m
-    r <- (B + B / m) / U_bar
+```
 
-    # Related to lambda
-    c(r, lambda / (1-lambda))
+and note again the conceptual meaning:
 
+```{r, eval = FALSE}
+# Conceptual meaning
+B / U_bar
+
+```
+
+and the relationship between $r$ and $\lambda$ is as described
+
+```{r}
+# r relation to lambda
+r == lambda / (1-lambda)
+
+```
+
+Let's now focus on the degrees of freedom.
+
+```{r}
 # > Degrees of freedom (old) --------------------------------------------------
 #   Interpretation: number of observations after accounting for the number of 
 #                   parameters in the model.
-#   - nu_old =~ m - 1 if lambda is ~1, meaning all variation due to nonresponse
-#   - nu_old =~ Inf   if lambda is ~0, meaning all variation due to sampling
 
     nu_old <- (m - 1) * (1 + 1 / r^2)
     nu_old <- (m - 1) / lambda^2
@@ -135,6 +314,10 @@ pool.imp <- pool(fit.imp)
 #   Interpretation: degrees of freedom of Q_bar in the hypothetically complete
 #                   data
 
+    # number of parameters
+    k <- 1 + 3
+
+    # Compute degrees of freedom
     nu_com <- n - k
 
 # > Degrees of freedom (obs) --------------------------------------------------
@@ -146,23 +329,16 @@ pool.imp <- pool(fit.imp)
 # > Degrees of freedom (adjusted) ---------------------------------------------
 #   Interpretation: adjusted degrees of freedom to be used for testing in
 #                   multiple imputation
-#   - nu <= nu_com  always!
-#   - nu =  nu_old  if nu_com = Inf
-#   - nu =  nu_com  if lambda = 0
-#   - nu =  0       if lambda = 1 (which makes no sense)
-#   - nu <  1       refrain from testing due to lack of info
 
     nu <- nu_old * nu_obs / (nu_old + nu_obs)
+```
 
-# > Fraction of information missing due to nonresponse (p. 47, eq. 2.25) ------
+With all of the degrees of freedom computed, we can now calculate the Fraction of information missing due to nonresponse
+
+```{r}
+# > Fraction of information missing due to nonresponse (p. 47, eq. 2.26) ------
 #   Interpretation: proportion of variation attributable to the missing data
 #                   -> ADJUSTED for the finite number of imputations
-#   - gamma = 0 -> missing data do not add extra variation to parameter
-#                  sampling variance
-#   - gamma = 1 -> missing data causes all of the variation in the parameter
-#                  estimate
-#   - gamma > .5 -> influence of the imputation model on the final result is
-#                  larger than complete-data
 
     gamma <- (r + 2/(nu + 3)) / (1 + r)
 

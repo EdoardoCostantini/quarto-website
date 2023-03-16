@@ -71,8 +71,8 @@ fit.cts <- superpc.predict(train.obj,
 # Compute the cross-validation MSE for a given number of predictors
 .spcrCVE <- function(dv, pred, part, K = 10, npcs = 1) {
   # Input examples
-  # dv   = mtcars[, 1]
-  # pred = mtcars[, -1]
+  # dv   = as.matrix(mtcars[, 1])
+  # pred = as.matrix(mtcars[, -1])
   # K    = 10
   # npcs = 5
   # part = sample(rep(1 : K, ceiling(nrow(mtcars) / K)))[1 : nrow(mtcars)]

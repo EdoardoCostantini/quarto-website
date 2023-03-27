@@ -8,6 +8,9 @@
 # Set seed
 set.seed(20230222)
 
+# Load packs
+library(lmtest) # for likelihood ratio test
+
 # Sample size
 n <- 100
 
@@ -93,9 +96,11 @@ logLik(lm_all)
 lrt_ture > lrt_all
 
 # chi-square values
-library(lmtest)
 lrtest(lm_null, lm_true)
 lrtest(lm_null, lm_all)
+
+qsd_true <- as.numeric(-2 * (logLik(lm_null) - logLik(lm_true)))
+qsd_all <- as.numeric(-2 * (logLik(lm_null) - logLik(lm_all)))
 
 pchisq(-2 * (logLik(lm_null) - logLik(lm_true)), df = 2, lower.tail = FALSE)
 pchisq(-2 * (logLik(lm_null) - logLik(lm_all)), df = 5, lower.tail = FALSE)
@@ -103,6 +108,11 @@ pchisq(-2 * (logLik(lm_null) - logLik(lm_all)), df = 5, lower.tail = FALSE)
 lines(density(rchisq(1e3, df = 20)))
 plot(density(rchisq(1e3, df = 50)), xlim = c(0, 100), ylim = c(0, .1))
 lines(density(rchisq(1e3, df = 30)))
+
+# Relationship between chi-square value and F statistic
+qsd_true / abs(length(coef(lm_null)[-1]) - length(coef(lm_true)[-1]))
+
+qsd_true / 
 
 # Check how the BIC reacts to this
 (length(lm_true$coefficients) + 1) * log(n) - 2 * logLik(lm_true)

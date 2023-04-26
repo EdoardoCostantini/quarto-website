@@ -13,9 +13,9 @@ about:
     - icon: bi-clipboard-data
       text: Data
       href: https://doi.org/10.4232/1.13511
-    # - icon: bi-graph-up
-    #   text: Shiny
-    #   href: https://edoardocostantini.shinyapps.io/plotmipca/
+    - icon: bi-graph-up
+      text: Shiny
+      href: https://edoardocostantini.shinyapps.io/mihd/
     - icon: bi-file-earmark-pdf
       text: Preprint
       href: https://arxiv.org/pdf/2208.13656.pdf

@@ -38,22 +38,22 @@ In this post, I want to show how PCA and MCA are related through this framework.
 
 ## Generalised Singular Value Decomposition
 
-Consider an $n \times p$ matrix of input variables $\mathbf{Z}$ with row metric $\mathbf{N}$ and column metric $\mathbf{M}$.
-The Generalized Singular Value Decomposition of $\mathbf{Z}$ can be written as:
+Consider an $n \times p$ matrix of input variables $\mathbf{X}$ with row metric $\mathbf{N}$ and column metric $\mathbf{M}$.
+The Generalized Singular Value Decomposition of $\mathbf{X}$ can be written as:
 $$
-\mathbf{Z} = \mathbf{U \Lambda V}^T
+\mathbf{X} = \mathbf{U \Lambda V}^T
 $$
 where:
 
-- $\mathbf{\Lambda}$ is the $r \times r$ diagonal matrix with elements equal to the square root of the non-zero eigenvalues of $\mathbf{ZMZ}^T\mathbf{N}$ and $\mathbf{Z}^T\mathbf{NZM}$;
-- $\mathbf{U}$ is the $n \times r$ matrix of the first $r$ eigenvectors of $\mathbf{ZMZ}^T\mathbf{N}$ such that $\mathbf{U}^T\mathbf{MU=I}$
-- $\mathbf{V}$ is the $p \times r$ matrix of the first $r$ eigenvectors of $\mathbf{Z}^T\mathbf{NZM}$ such that $\mathbf{V}^T\mathbf{MV=I}$;
+- $\mathbf{\Lambda}$ is the $r \times r$ diagonal matrix with elements equal to the square root of the non-zero eigenvalues of $\mathbf{XMX}^T\mathbf{N}$ and $\mathbf{X}^T\mathbf{NXM}$;
+- $\mathbf{U}$ is the $n \times r$ matrix of the first $r$ eigenvectors of $\mathbf{XMX}^T\mathbf{N}$ such that $\mathbf{U}^T\mathbf{MU=I}$
+- $\mathbf{V}$ is the $p \times r$ matrix of the first $r$ eigenvectors of $\mathbf{X}^T\mathbf{NXM}$ such that $\mathbf{V}^T\mathbf{MV=I}$;
 
-The GSVD of $\mathbf{Z}$ can be obtained by taking 
+The GSVD of $\mathbf{X}$ can be obtained by taking 
 
-- first taking the standard SVD of the transformed matrix $\tilde{\mathbf{Z}} = \mathbf{N}^{1/2}\mathbf{Z}\mathbf{M}^{1/2}$ which gives:
+- first taking the standard SVD of the transformed matrix $\tilde{\mathbf{X}} = \mathbf{N}^{1/2}\mathbf{X}\mathbf{M}^{1/2}$ which gives:
 $$
-\tilde{\mathbf{Z}} = \tilde{\mathbf{U}}\tilde{\mathbf{\Lambda}}\tilde{\mathbf{V}}^T
+\tilde{\mathbf{X}} = \tilde{\mathbf{U}}\tilde{\mathbf{\Lambda}}\tilde{\mathbf{V}}^T
 $$
 - and then transforming each element back to the original scale
 $$
@@ -69,28 +69,28 @@ $$
 
 ## Relationship of GSVD to standard SVD
 
-It's easy to see how this GSVD differs from the standard formulation of SVD simply by the presence of the metrics $\mathbf{M}$ and $\mathbf{M}$.
+It's easy to see how this GSVD differs from the standard formulation of SVD simply by the presence of the metrics $\mathbf{N}$ and $\mathbf{M}$.
 As you can see [here](https://en.wikipedia.org/wiki/Singular_value_decomposition#Relation_to_eigenvalue_decomposition), in the standard formulation of SVD:
 
-- $\mathbf{\Lambda}$ is the $r \times r$ diagonal matrix with elements equal to the square root of the non-zero eigenvalues of $\mathbf{ZZ}^T$ and $\mathbf{Z}^T\mathbf{Z}$;
-- $\mathbf{U}$ is the $n \times r$ matrix of the first $r$ eigenvectors of $\mathbf{ZZ}^T$ such that $\mathbf{U}^T\mathbf{U=I}$
-- $\mathbf{V}$ is the $p \times r$ matrix of the first $r$ eigenvectors of $\mathbf{Z}^T\mathbf{NZM}$ such that $\mathbf{V}^T\mathbf{V=I}$;
+- $\mathbf{\Lambda}$ is the $r \times r$ diagonal matrix with elements equal to the square root of the non-zero eigenvalues of $\mathbf{XX}^T$ and $\mathbf{X}^T\mathbf{X}$;
+- $\mathbf{U}$ is the $n \times r$ matrix of the first $r$ eigenvectors of $\mathbf{XX}^T$ such that $\mathbf{U}^T\mathbf{U=I}$
+- $\mathbf{V}$ is the $p \times r$ matrix of the first $r$ eigenvectors of $\mathbf{X}^T\mathbf{NXM}$ such that $\mathbf{V}^T\mathbf{V=I}$;
 
 ## PCA and MCA as special cases of GSVD
 
-The solutions for both PCA and MCA can be obtained as special cases of the GSVD approach described by setting $\mathbf{Z}$ equal to a preprocessed version of the original data $\mathbf{X}$ and using $\mathbf{N}$ and $\mathbf{M}$ to appropriately weight the rows and columns.
+The solutions for both PCA and MCA can be obtained as special cases of the GSVD approach described by setting $\mathbf{X}$ equal to a preprocessed version of the original data $\mathbf{X}$ and using $\mathbf{N}$ and $\mathbf{M}$ to appropriately weight the rows and columns.
 
 ### PCA
 
 The input data for standard PCA is the $n \times p$ matrix $\mathbf{X}$ of $n$ rows (observations) described by $p$ numerical variables.
 The columns of this matrix are usually centered and standardized.
-The GSVD can be used to find the solution to PCA by setting $\mathbf{Z}$ equal to the centered and standardized version of $\mathbf{X}$ and weighting:
+The GSVD can be used to find the solution to PCA by setting $\mathbf{X}$ equal to the centered and standardized version of $\mathbf{X}$ and weighting:
 
 - its rows by $1/n$, which is obtained by setting $\mathbf{N} = \frac{1}{n}I_n$
 - its columns by $1$, which is obtained by setting $\mathbf{M} = I_p$.
-This metric indicates that the distance between two observations is the standard euclidean distance between two rows of $\mathbf{Z}$
+This metric indicates that the distance between two observations is the standard euclidean distance between two rows of $\mathbf{X}$
 
-By setting these values for the metrics, it is easy to see how the GSVD of $\mathbf{X}$ reduces to the standard SVD of $\mathbf{Z}$.
+By setting these values for the metrics, it is easy to see how the GSVD of $\mathbf{X}$ reduces to the standard SVD of $\mathbf{X}$.
 
 ### MCA
 
@@ -104,11 +104,11 @@ MCA is usually obtained by applying Correspondence Analysis to $\mathbf{G}$, whi
 In particular, for the goal of obtaining a lower-dimensional representation of $\mathbf{X}$ we are interested in the standard PCA of the row profiles.
 Within the framework of PCA with metrics, MCA can be obtained by first setting:
 
-- $\mathbf{Z}$ to the centered $\mathbf{G}$
+- $\mathbf{X}$ to the centered $\mathbf{G}$
 - $\mathbf{N} = \frac{1}{n}I_n$
 - $\mathbf{M} = \text{diag}(\frac{n}{n_s}, s = 1, \dots, k)$
 
-The coordinates of the observations (the principal component scores) can be obtained by applying the GSVD of $\mathbf{Z}$ with the given metrics.
+The coordinates of the observations (the principal component scores) can be obtained by applying the GSVD of $\mathbf{X}$ with the given metrics.
 
 # Learn by coding
 

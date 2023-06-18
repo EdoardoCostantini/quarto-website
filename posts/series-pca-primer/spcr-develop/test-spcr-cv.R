@@ -43,7 +43,7 @@ XTP <- generateXTP(
     J <- P, # number of variables
     VAFr <- diff(seq(0, 1, len = Q + 1)), # relative variance of each components
     VAFsum <- 100, # total variance of the components
-    CPVE <- 0.9 # proportion of explained variance by the R components
+    CPVE <- 0.3 # proportion of explained variance by the R components
 )
 X <- XTP$X
 
@@ -62,15 +62,20 @@ nScree(x = eigenvalues)
 # Screeplot
 plotuScree(x = eigenvalues)
 
-# Attach junk predictors to X?
-X <- cbind(X, junk = matrix(rnorm(N * P), nrow = N, ncol = P))
+# # # Attach junk predictors to X?
+# X <- cbind(X, junk = matrix(rnorm(N * P), nrow = N, ncol = P))
 
 # generate DV based on the component scores
 y <- generateDV(
     X = XTP$T[, 1:Qy, drop = FALSE],
-    R2 = 0.70,
+    R2 = 0.80,
     beta = 1
 )
+
+# Save example datasets
+
+GSPCRexdata <- data.frame(y = y, X)
+saveRDS(GSPCRexdata, "./GSPCRexdata.rds")
 
 # Check the model is as expected
 summary(lm(y ~ -1 + XTP$T))
@@ -286,7 +291,7 @@ out1 <- .spcr.cv.full(
     ivs = X,
     fam = "gaussian",
     nthrs = 20,
-    maxnpcs = 10,
+    maxnpcs = 5,
     K = 10,
     test = "F",
     thrs = "normalized",
@@ -306,7 +311,7 @@ out <- lapply(
         ivs = X,
         fam = "gaussian",
         nthrs = 20,
-        maxnpcs = 10,
+        maxnpcs = 5,
         K = 10,
         test = meth,
         thrs = "normalized",
@@ -322,6 +327,7 @@ names(out) <- vmeth
 # Create plots for all of the desired methods
 plots <- lapply(
     1:length(vmeth),
+    # meth <- 2
     function(meth) {
 
         # Plot trends in a similar way to the package

@@ -112,159 +112,319 @@ The coordinates of the observations (the principal component scores) can be obta
 
 # Learn by coding
 
-```{r mca, warning = FALSE, message = FALSE}
+To understand the relationship between SVD, GSVD, PCA, and MCA we will need two packages:
 
-### Object: Performing Multiple Correspondance Analysis in R 
-### Source: Practical Guide to Principal Component Methods 
-###         (Chapter 5 Code)
-
+```{r}
 # Load Packages
-  library("FactoMineR") # for analysis
-  library("factoextra") # for visualizarion1
-#   library("httpg")
+library("FactoMineR") # for analysis
+library("factoextra") # for visualizarion1
+```
 
+## MCA
+
+### A standard MCA analysis according to FactoMineR
+
+We will start by performing the MCA analysis.
+Let's start by loading, preparing, and summarising the data:
+
+```{r}
 # Data Prep ---------------------------------------------------------------
 
-  data("poison")
-  head(poison[, 1:7], 3) # survey style data
-  
-# Subset active individuals and variables
-  poison.active <- poison[1:55, 5:15] 
-  head(poison.active[, 1:6], 3)
-  
-# Summaries
-  str(poison.active)
-  for (i in 1:4) {
-    plot(poison.active[,i], main=colnames(poison.active)[i],
-         ylab = "Count", col="steelblue", las = 2)
-  }
-  
-# The analysis ------------------------------------------------------------
-  
-  res.mca <- FactoMineR::MCA(X = poison.active,
-                             ncp = 5,
-                             graph = TRUE)
+# Load data
+data("poison")
+head(poison[, 1:7], 3) # survey style data
 
+# Subset active individuals and variables
+poison.active <- poison[1:55, 5:15]
+head(poison.active[, 1:6], 3)
+
+# Summaries
+str(poison.active)
+for (i in 1:4) {
+    plot(poison.active[, i],
+        main = colnames(poison.active)[i],
+        ylab = "Count", col = "steelblue", las = 2
+    )
+}
+
+```
+
+We can then use the `MCA()` function from the `FactorMineR` package to perform a standard MCA analysis of the data.
+
+```{r}
+# The analysis ------------------------------------------------------------
+res.mca <- FactoMineR::MCA(
+    X = poison.active,
+    ncp = 5,
+    graph = TRUE
+)
+
+```
+
+We can now visualize different aspects of the analysis.
+
+We extract the eigenvalues
+
+```{r}
 # Visualization -----------------------------------------------------------
 
-  # Eigenvalues / Variances
-  eig.val <- get_eigenvalue(res.mca)
-  eig.val # proportion of variances retained by dimensions
-  
-  # Percentages of Inertia explained by MCA
-  fviz_screeplot(res.mca, addlabels = TRUE, ylim = c(0,45))
-  
-  # Biplot
-  fviz_mca_biplot(res.mca,
-                  repel = TRUE, # avoid text overlapping
-                  ggtheme = theme_minimal())
-    # Rows (individuals) are represented by blue points;
-    # Columns (variable categories) by red triangles.
-  
-  # Graph of variables
-  var <- get_mca_var(res.mca) 
-  var
-  # Coordinates 
-  head(var$coord)
-  # Cos2: quality on the factore map 
-  head(var$cos2)
-  # Contributions to the principal components
-  head(var$contrib)
-  
-  # Graph of individuals
-  ind <- get_mca_ind(res.mca) # extract the results for individuals
-  ind
-  # Coordinates of column points
-  head(ind$coord)
-  # Quality of representation
-  head(ind$cos2)
-  # Contributions
-  head(ind$contrib)
-  # BIplot for individuals only (no vars)
-  fviz_mca_ind(res.mca, col.ind = "cos2",
-               gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
-               repel = TRUE, ggtheme = theme_minimal())
-  fviz_mca_ind(res.mca, 
-               label = "none",
-               habillage = "Vomiting", # color by groups defined by variable
-               palette = c("#00AFBB", "#E7B800"),
-               addEllipses = TRUE, ellipse.type = "confidence",
-               repel = TRUE, ggtheme = theme_minimal())
-  # More than 1 grouping variable
-  fviz_ellipses(res.mca, c("Vomiting", "Fever"),
-                geom = "point")
-  # Bar plot for Cos2 of individuals 
-  fviz_cos2(res.mca, choice = "ind", axes = 1:2, top = 20)
-  # Contribution of individuals to the dimensions 
-  fviz_contrib(res.mca, choice = "ind", axes = 1:2, top = 20)
+# Eigenvalues / Variances
+eig.val <- get_eigenvalue(res.mca)
+eig.val # proportion of variances retained by dimensions
+```
 
-# Supplementary elements --------------------------------------------------
+Percentages of inertia explained by MCA
 
-#   res.mca <- MCA(poison, 
-#                  ind.sup = 53:55)
-#   ind <- get_mca_ind(res.mca)
-#   ind$coord
-#   res.mca$ind.sup # Supplementary individuals 
-  
-# Doing it by hand --------------------------------------------------------
-  
-  # Data
-  data(wine)
-  MCA.dt <- wine[, sapply(wine, is.factor)]
-  sapply(MCA.dt, nlevels)
-  
-  # Goal: Find the coordinates of 
-  npcs <- 4
-  res.mca <- FactoMineR::MCA(X = MCA.dt, ncp = npcs, graph = FALSE)
-  res.mca$ind$coord # Coordinates of the individuals on the dimensions
-  res.mca$svd$V
-  
-# Following AudigierEtAl2016_MICAT ----------------------------------------
-  
-  I <- nrow(MCA.dt)     # numebr of individuals
-  K <- ncol(MCA.dt)     # number of categorical predictors
-  qk <- sapply(MCA.dt,  # number of levels per categorical variable 
-               nlevels) 
-  J <- sum(qk)          # total number of categories
-  
-  # Disjunctive table
-  Z <- tab.disjonctif(MCA.dt)
-  # Notice the relationship between the disjunctive table and a 
-  # contingency table 
-  N <- t(Z[, 1:3]) %*% Z[, 4:7]
-  N - table(MCA.dt)
-  
-  # Distance Metric Matrix
-  pxkqk <- colSums(Z)/I # props ids taking category value on variable
-  D_Sigma <- diag(pxkqk)
-  
-  # Weight Matrix
-  W_mat <- diag(rep(1, I))/I
-  
-  # M matrix (center matrix)
-  M <- matrix((rep(colMeans(Z), nrow(Z))), 
-              nrow = nrow(Z), 
-              byrow = TRUE)
-  
-  # SVD of triplet (Z-M, D_Sigma, W_mat)
-  SVD.trip <- svd.triplet(X = Z - M,
-                          row.w = diag(W_mat),
-                          col.w = diag(1/K*solve(D_Sigma)),
-                          ncp = npcs)
-  
-  # Manual SVD triplet
-  SVD.man <- svd(sqrt(W_mat) %*% (Z - M) %*% sqrt(1/K*solve(D_Sigma)))
-  
-  # Convert back to correct scales (according to Chaven 2017 p. 3)
-  V.man <- (solve(sqrt(1/K*solve(D_Sigma))) %*% SVD.man$v)[, 1:npcs]
-  U.man <- (solve(sqrt(W_mat)) %*% SVD.man$u)[, 1:npcs]
-  L.man <- SVD.man$d[1:npcs]
+```{r}
+# Percentages of Inertia explained by MCA
+fviz_screeplot(res.mca, addlabels = TRUE, ylim = c(0, 45))
+```
 
-  # Compare SVD triplet and manual SVD of weighted matrix
-  round(abs(SVD.trip$V) - abs(V.man), 5)
-  round(abs(SVD.trip$U) - abs(U.man), 5)
-  round(abs(SVD.trip$vs[1:npcs]) - abs(L.man), 5)
+Biplots
+
+```{r}
+# Biplot
+fviz_mca_biplot(res.mca,
+    repel = TRUE, # avoid text overlapping
+    ggtheme = theme_minimal()
+)
+# Rows (individuals) are represented by blue points;
+# Columns (variable categories) by red triangles.
+```
+
+Graphs of variables
+
+```{r}
+
+# Graph of variables
+var <- get_mca_var(res.mca)
+var
+# Coordinates
+head(var$coord)
+# Cos2: quality on the factore map
+head(var$cos2)
+# Contributions to the principal components
+head(var$contrib)
+
+```
+
+Graphs for individuals
+
+```{r}
+# Graph of individuals
+ind <- get_mca_ind(res.mca) # extract the results for individuals
+ind
+# Coordinates of column points
+head(ind$coord)
+# Quality of representation
+head(ind$cos2)
+# Contributions
+head(ind$contrib)
+
+# BIplot for individuals only (no vars)
+fviz_mca_ind(res.mca,
+    col.ind = "cos2",
+    gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+    repel = TRUE, ggtheme = theme_minimal()
+)
+fviz_mca_ind(res.mca,
+    label = "none",
+    habillage = "Vomiting", # color by groups defined by variable
+    palette = c("#00AFBB", "#E7B800"),
+    addEllipses = TRUE, ellipse.type = "confidence",
+    repel = TRUE, ggtheme = theme_minimal()
+)
+
+```
+
+Ellipses
+
+```{r}
+
+# More than 1 grouping variable
+fviz_ellipses(res.mca, c("Vomiting", "Fever"),
+    geom = "point"
+)
+
+```
+
+Bar plot for Cos2 of individuals:
+
+```{r}
+# Bar plot for Cos2 of individuals
+fviz_cos2(res.mca, choice = "ind", axes = 1:2, top = 20)
+```
+
+Contribution of individuals to the dimensions 
+
+```{r}
+# Contribution of individuals to the dimensions
+fviz_contrib(res.mca, choice = "ind", axes = 1:2, top = 20)
+```
+
+### Perfomring MCA by hand
+
+Let's work with wine data:
+
+```{r}
+# Data
+data(wine)
+
+```
+
+Let's keep only the variables that are facotrs
+
+```{r}
+# Keep factors
+MCA.dt <- wine[, sapply(wine, is.factor)]
+
+# Look at data
+MCA.dt
+
+```
+
+The two variables involved have these number of levels:
+```{r}
+# Count levels
+sapply(MCA.dt, nlevels)
+
+```
+
+Let's now perform a standard MCA analysis with FactoMineR. Let's say we are aiming for extracting 4 components:
+
+```{r}
+# Define goal number of PCs
+npcs <- 4
+
+# Perform MCA
+res.mca <- FactoMineR::MCA(
+    X = MCA.dt,
+    ncp = npcs,
+    graph = FALSE
+)
+
+```
+
+We can now look at the coordinates of the individuals on the `npcs` dimensions:
+
+```{r}
+# Coordinates of the individuals on the dimensions
+res.mca$ind$coord
+
+```
+
+We can also look at the right singular vectors of the data:
+
+```{r}
+# right singular vectors of data
+res.mca$svd$V
+
+```
+
+Now we can replicate the computations involved following a description of MCA I found in AudigierEtAl2016_MICAT.
+First, we need to extract a few objects we will need.
+
+```{r}
+# Create required processing objects
+I <- nrow(MCA.dt)             # numebr of individuals
+K <- ncol(MCA.dt)             # number of categorical predictors
+qk <- sapply(MCA.dt, nlevels) # number of levels per categorical variable
+J <- sum(qk)                  # total number of categories
+
+```
+
+Then, we can create the disjonctive table:
+
+```{r}
+# Disjunctive table
+Z <- tab.disjonctif(MCA.dt)
+
+# And look at it
+Z
+
+```
+
+Notice the relationship of the disjunctive table with a standard contingency table:
+
+```{r}
+# Relationship between disjunctive table and contingency table
+N <- t(Z[, 1:3]) %*% Z[, 4:7]
+N - table(MCA.dt)
+
+```
+
+We can compute the weighting matrices that are used to perform MCA.
+First, we want to compute the proportion of individuals taking a category value for each variable, which is known as a distance matrix:
+
+```{r}
+# Distance Metric Matrix
+pxkqk <- colSums(Z) / I
+D_Sigma <- diag(pxkqk)
+
+```
+
+Then we want to compute the individual weight matrix:
+
+```{r}
+# Weight Matrix
+W_mat <- diag(rep(1, I))/I
+
+```
+
+and finally, we want to compute the center matrix:
+
+```{r}
+# M matrix (center matrix)
+M <- matrix((rep(colMeans(Z), nrow(Z))),
+    nrow = nrow(Z),
+    byrow = TRUE
+)
+
+```
+
+We can now take the SVD of a centered version of the disjunctive table with an SVD triplet function form `FactoMineR`:
+
+```{r}
+# SVD of triplet (Z-M, D_Sigma, W_mat)
+SVD.trip <- FactoMineR::svd.triplet(
+    X = Z - M,
+    row.w = diag(W_mat),
+    col.w = diag(1 / K * solve(D_Sigma)),
+    ncp = npcs
+)
+
+```
+
+We can also take the SVD of the same centered matrix using a thes standard `svd` R function:
+
+```{r}
+# Manual SVD triplet
+SVD.man <- svd(sqrt(W_mat) %*% (Z - M) %*% sqrt(1 / K * solve(D_Sigma)))
+
+```
+
+When computing the SVD in this manual way, we need to convert the scale according to Chaven 2017 p. 3
+
+```{r}
+# Convert back to correct scales (according to Chaven 2017 p. 3)
+V.man <- (solve(sqrt(1 / K * solve(D_Sigma))) %*% SVD.man$v)[, 1:npcs]
+U.man <- (solve(sqrt(W_mat)) %*% SVD.man$u)[, 1:npcs]
+L.man <- SVD.man$d[1:npcs]
+
+```
+
+Doing so, you will see that the computation obtained by `FactoMineR` approach is the same as the one done by hand
+
+```{r}
+# Compare SVD triplet and manual SVD of weighted matrix
+round(abs(SVD.trip$V) - abs(V.man), 5)
+round(abs(SVD.trip$U) - abs(U.man), 5)
+round(abs(SVD.trip$vs[1:npcs]) - abs(L.man), 5)
   
+```
+
+```{r mca, warning = FALSE, message = FALSE}
+
   # Reconstruction Formula
   d_hat <- SVD.trip$vs[1:npcs] # matrix of the singular values 
                             # (Squared would be eigenvalues of Z)

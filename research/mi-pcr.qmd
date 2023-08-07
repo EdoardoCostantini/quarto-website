@@ -1,12 +1,18 @@
 ---
 title: "Solving the many variables problem in MICE with principal component regression."
 slug: mi-pcr
-date: '2023-02-28'
-date-format: "YYYY"
+date: '2023-08-01'
+date-format: "YYYY-MM-DD"
 title-block-banner: true
 about:
   template: solana
   links:
+    - icon: bi-journal-text
+      text: Article
+      href: https://link.springer.com/article/10.3758/s13428-023-02117-1
+    - icon: bi-journal-text
+      text: arXiv
+      href: https://arxiv.org/abs/2206.15107
     - icon: github
       text: Github
       href: https://github.com/EdoardoCostantini/mi-pca
@@ -16,18 +22,9 @@ about:
     - icon: bi-graph-up
       text: Shiny
       href: https://edoardocostantini.shinyapps.io/plotmipca/
-    - icon: bi-file-earmark-pdf
-      text: Preprint
-      href: https://arxiv.org/pdf/2206.15107.pdf
-    - icon: archive
-      text: arxiv
-      href: https://arxiv.org/abs/2206.15107
-    # - icon: bi-file-earmark-pdf
-    #   text: Published article
-    #   href: 
-categories: [Completed]
+categories: [Published]
 bibliography: ../resources/bibshelf.bib
-nocite: '@costantiniEtAl:2022b'
+nocite: '@costantiniEtAl:2023'
 ---
 
 # Citation

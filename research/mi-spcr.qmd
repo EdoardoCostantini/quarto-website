@@ -1,7 +1,7 @@
 ---
 title: "Supervised principal component regression imputation in MICE."
 slug: mi-spcr
-date: '2023-03-01'
+date: '2023-08-02'
 date-format: "YYYY"
 title-block-banner: true
 about:

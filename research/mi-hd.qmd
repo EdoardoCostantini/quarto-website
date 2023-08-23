@@ -11,7 +11,7 @@ about:
     #   text: Article
     #   href: 
     - icon: bi-journal-text
-      text: arXiv
+      text: Preprint
       href: https://arxiv.org/abs/2208.13656
     - icon: github
       text: Github
@@ -26,9 +26,5 @@ categories: [Accepted for publication]
 bibliography: ../resources/bibshelf.bib
 nocite: '@costantiniEtAl:2022a'
 ---
-
-```{=html}
-<iframe width="780" height="1100" src="https://arxiv.org/pdf/2208.13656.pdf" title="Article preview"></iframe>
-```
 
 # Citation

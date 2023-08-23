@@ -32,7 +32,7 @@ One way to find the PCA solution for $\mathbf{\Lambda}$ is by taking the truncat
 The PCs scores are given by the $n \times r$ matrix $\mathbf{UD}$, and the weights $\mathbf{\Lambda}$ are given by the $p \times r$ matrix $\mathbf{V}$.
 
 **Multiple Correspondence Analysis** (MCA) is generally regarded as an equivalent tool that applies to discrete data.
-Chavent et al. [-@chaventEtAl:2014] have shown how using weights on rows and columns of the input data matrix can define a general PCA framework that includes standard PCA and MCA as special cases.
+Chavent et al. [-@chaventEtAl:2012] have shown how using weights on rows and columns of the input data matrix can define a general PCA framework that includes standard PCA and MCA as special cases.
 This approach is often referred to as **PCA with metrics**, as metrics are used to introduce the weights.
 In this post, I want to show how PCA and MCA are related through this framework.
 

@@ -27,4 +27,8 @@ bibliography: ../resources/bibshelf.bib
 nocite: '@costantiniEtAl:2023'
 ---
 
+```{=html}
+<iframe width="780" height="1033" src="https://link.springer.com/content/pdf/10.3758/s13428-023-02117-1.pdf?pdf=button" title="Article preview"></iframe>
+```
+
 # Citation

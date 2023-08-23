@@ -7,6 +7,12 @@ title-block-banner: true
 about:
   template: solana
   links:
+    # - icon: bi-journal-text
+    #   text: Article
+    #   href: 
+    - icon: bi-journal-text
+      text: arXiv
+      href: https://arxiv.org/abs/2208.13656
     - icon: github
       text: Github
       href: https://github.com/EdoardoCostantini/imputeHD-comp
@@ -16,18 +22,13 @@ about:
     - icon: bi-graph-up
       text: Shiny
       href: https://edoardocostantini.shinyapps.io/mihd/
-    - icon: bi-file-earmark-pdf
-      text: Preprint
-      href: https://arxiv.org/pdf/2208.13656.pdf
-    - icon: archive
-      text: arxiv
-      href: https://arxiv.org/abs/2208.13656
-    # - icon: bi-file-earmark-pdf
-    #   text: Published article
-    #   href: 
-categories: [Work in progress]
+categories: [Accepted for publication]
 bibliography: ../resources/bibshelf.bib
 nocite: '@costantiniEtAl:2022a'
 ---
+
+```{=html}
+<iframe width="780" height="1100" src="https://arxiv.org/pdf/2208.13656.pdf" title="Article preview"></iframe>
+```
 
 # Citation

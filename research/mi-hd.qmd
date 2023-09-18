@@ -7,9 +7,9 @@ title-block-banner: true
 about:
   template: solana
   links:
-    # - icon: bi-journal-text
-    #   text: Article
-    #   href: 
+    - icon: bi-journal-text
+      text: Published article
+      href: https://doi.org/10.1177/00491241231200194
     - icon: bi-journal-text
       text: Preprint
       href: https://arxiv.org/abs/2208.13656
@@ -22,9 +22,9 @@ about:
     - icon: bi-graph-up
       text: Shiny
       href: https://edoardocostantini.shinyapps.io/mihd/
-categories: [Accepted for publication]
+categories: [Published]
 bibliography: ../resources/bibshelf.bib
-nocite: '@costantiniEtAl:2022a'
+nocite: '@costantiniEtAl:2023b'
 ---
 
 # Citation

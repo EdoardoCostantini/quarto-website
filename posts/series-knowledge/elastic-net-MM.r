@@ -54,56 +54,58 @@ EN_MM <- function(X, y, lambda_L, lambda_R) {
     conv <- FALSE
     iter <- 1
 
-    # Initialize beta (i minus 1 = 0)
-    B_im1 <- rnorm(p)
+    # Initialize supporting point beta (i minus 1 = 0)
+    B_0 <- rnorm(p)
 
     # Define l1 penalty
-    penalty_L <- sum(abs(B_im1))
+    penalty_L <- sum(abs(B_0))
 
     # Define l2 penalty
-    penalty_R <- sum((B_im1)^2)
+    penalty_R <- sum((B_0)^2)
 
-    # Loss function at i minus 1
-    loss_im1 <- sum((y - X %*% B_im1)^2) + lambda_L * penalty_L + lambda_R * penalty_R
+    # Loss function at supporting point i minus 1 [g(a|a)]
+    loss_0 <- sum((y - X %*% B_0)^2) + lambda_L * penalty_L + lambda_R * penalty_R
 
     while (conv == FALSE) {
         # Define D
-        D <- diag((abs(B_im1) + epsi)^(-1))
+        D <- diag((abs(B_0) + epsi)^(-1))
 
         # Update Beta
-        B_i <- solve(XX + lambda_L / 2 * D + diag(lambda_R, p)) %*% Xy
+        B_i <- as.numeric(
+            solve(XX + lambda_L / 2 * D + diag(lambda_R, p)) %*% Xy
+        )
 
         # Update l1 penalty
-        penalty_L <- colSums(abs(B_i))
+        penalty_L <- sum(abs(B_i))
 
         # Update l2 penalty
-        penalty_R <- colSums(B_i^2)
+        penalty_R <- sum(B_i^2)
 
         # Update loss function
         loss_i <- sum((y - X %*% B_i)^2) + lambda_L * penalty_L + lambda_R * penalty_R
 
         # Check convergence
-        if (loss_im1 - loss_i < epsi) {
+        if (loss_0 - loss_i < epsi) {
             conv <- TRUE
             B_hat <- B_i
-            B_hat[(abs(B_i) < 100 * epsi)] <-  0
+            B_hat[(abs(B_hat) < 100 * epsi)] <- 0
         }
 
         # Update iteration counter
         iter <- iter + 1
 
         # Update
-        B_im1 <- B_i
-        loss_im1 <- loss_i
+        B_0 <- B_i
+        loss_0 <- loss_i
     }
 
     # result
-    as.vector(B_hat)
+    B_hat
 }
 
 # Define possible values for Ridge
+lambda_L_vecotr <- c(50, 20, 15, 11, 10, 8, 6, 5, 4, 3, 2, 1, 0.9, 0.8, 0.7, 0.65, 0.6, 0.5, 0.4, 0.35, 0.25, 0.2, 0.15, 0.125, 0.10, 0.09, 0.08, 0.05, 0.02, 0.015, 0.001, 0.0001, 0.00001, 0)
 lambda_R_vector <- c(0, 1e-4, .5, 1)
-lambda_L_vecotr <- c(20, 15, 11, 10, 8, 6, 5, 4, 3, 2, 1, 0.9, 0.8, 0.7, 0.65, 0.6, 0.5, 0.4, 0.35, 0.25, 0.2, 0.15, 0.125, 0.10, 0.09, 0.08, 0.05, 0.02, 0.015, 0.001, 0.0001, 0.00001, 0)
 
 # Define experimental conditions
 conds <- expand.grid(Lambda = lambda_L_vecotr, Ridge = lambda_R_vector)
@@ -112,8 +114,13 @@ conds <- expand.grid(Lambda = lambda_L_vecotr, Ridge = lambda_R_vector)
 shelf <- matrix(NA, nrow = nrow(conds), ncol = p, dimnames = list(NULL, paste0("B", 1:p)))
 
 # Loop over conditions
-for(i in 1:nrow(conds)){
-    shelf[i, ] <- EN_MM(X, y, lambda_L = conds[i, "Lambda"], lambda_R = conds[i, "Ridge"])
+for (i in 1:nrow(conds)) {
+    shelf[i, ] <- EN_MM(
+        X,
+        y,
+        lambda_L = conds[i, "Lambda"],
+        lambda_R = conds[i, "Ridge"]
+    )
 }
 
 # Attach to conditions
@@ -125,7 +132,7 @@ head(results_ggplot)
 
 # Make plot
 results_ggplot %>%
-    filter(variable == "B2") %>% 
+    # filter(variable == "B2") %>% 
     ggplot(
         aes(
             x = Lambda,

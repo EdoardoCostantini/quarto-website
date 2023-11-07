@@ -104,8 +104,8 @@ EN_MM <- function(X, y, lambda_L, lambda_R) {
 }
 
 # Define possible values for Ridge
-lambda_L_vecotr <- c(50, 20, 15, 11, 10, 8, 6, 5, 4, 3, 2, 1, 0.9, 0.8, 0.7, 0.65, 0.6, 0.5, 0.4, 0.35, 0.25, 0.2, 0.15, 0.125, 0.10, 0.09, 0.08, 0.05, 0.02, 0.015, 0.001, 0.0001, 0.00001, 0)
-lambda_R_vector <- c(0, 1e-4, .5, 1)
+lambda_L_vecotr <- c(20, 15, 11, 10, 8, 6, 5, 4, 3, 2, 1, 0.9, 0.8, 0.7, 0.65, 0.6, 0.5, 0.4, 0.35, 0.25, 0.2, 0.15, 0.125, 0.10, 0.09, 0.08, 0.05, 0.02, 0.015, 0.001, 0.0001, 0.00001, 0) * (nrow(X)^2)
+lambda_R_vector <- c(0, 1e-4, .5, 1) * (nrow(X)^2)
 
 # Define experimental conditions
 conds <- expand.grid(Lambda = lambda_L_vecotr, Ridge = lambda_R_vector)
@@ -132,7 +132,8 @@ head(results_ggplot)
 
 # Make plot
 results_ggplot %>%
-    # filter(variable == "B2") %>% 
+    # filter(variable == "B9") %>% 
+    mutate(Lambda = factor(Lambda)) %>% 
     ggplot(
         aes(
             x = Lambda,
@@ -142,5 +143,6 @@ results_ggplot %>%
     ) +
     geom_line() +
     facet_grid(
-        col = vars(Ridge)
+        rows = vars(Ridge),
+        scales = "free"
     )

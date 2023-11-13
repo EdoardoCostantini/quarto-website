@@ -122,14 +122,14 @@ minRidge <- function(b, x, y, lambda) {
 }
 
 # Give support for the function
-b1 <- sort(c(seq(0, 10, length = 1e3), B))
+b1 <- sort(c(seq(-5, 10, length = 1e3), B))
 
 # Store values of function evaluated at the possible values of the inputs
 shelf <- matrix(NA, ncol = 3, nrow = length(b1))
 for (i in 1:length(b1)) {
         shelf[i, 1] <- minOLS(b = b1[i], x = X, y = y)
-        shelf[i, 2] <- minRidge(b = b1[i], x = X, y = y, lambda = 1e3)
-        shelf[i, 3] <- minLasso(b = b1[i], x = X, y = y, lambda = 1e3)
+        shelf[i, 2] <- minRidge(b = b1[i], x = X, y = y, lambda = 10)
+        shelf[i, 3] <- minLasso(b = b1[i], x = X, y = y, lambda = 10)
 }
 
 # Plot
@@ -143,7 +143,7 @@ plot(
 lines(x = b1, y = shelf[, 2], col = "blue")
 lines(x = b1, y = shelf[, 3], lty = 2, col = "blue")
 
-legend(0, 5000,
+legend(min(b1), 200,
     legend = c("OLS", "Ridge", "Lasso"),
     col = c("black", "blue", "blue"), 
     lty = c(1, 1, 2), 

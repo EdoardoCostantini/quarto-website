@@ -19,8 +19,8 @@ Following [@schafer:1997 ch 2.3.2], consider an $n \times p$ data matrix $Y$, wi
 The **complete data probability density function** of $Y$ is the function of $Y$ for fixed $\theta$ that can be written as:
 
 $$
-f(Y|\theta) = \prod_{i = 1}^{n} f(y_i|\theta) (\#eq:pdfy)
-$$
+f(Y|\theta) = \prod_{i = 1}^{n} f(y_i|\theta)
+$$ {#eq-pdfy}
 
 where
 
@@ -40,14 +40,14 @@ $$
 l(\theta|Y) = log(L(\theta|Y))
 $$
 
-The **maximum likelihood estimate** of $\theta$ is the value of $\theta$ that leads to the highest value of of the log-likelihood function, for a fixed $Y$.
+The **maximum likelihood estimate** of $\theta$ is the value of $\theta$ that leads to the highest value of the log-likelihood function, for a fixed $Y$.
 This estimate can be found by setting the first derivative of the log-likelihood function equal to 0, and solving for $\theta$:
 
 $$
-\frac{\partial l(\theta|Y)}{\partial \theta} = 0 (\#eq:le)
-$$
+\frac{\partial l(\theta|Y)}{\partial \theta} = 0
+$$ {#eq-le}
 
-\@ref(eq:le) is called the **likelihood equation** or **score function**.
+@eq-le is called the **likelihood equation** or **score function**.
 If there are $d$ components to $\theta$, then the likelihood equation is a set of $d$ simultaneous equations defined by differentiating $l(\theta|Y)$ with respect to each component.
 
 ### Example
@@ -92,28 +92,26 @@ If we assume that $Y$ comes from a multivariate normal distribution with paramet
 
   where $\bar{y}$ is the vector of sample means, and $S$ is the $p \times p$ cross-product matrix with the $(i, j)$th element $s_{ij} = \sum^{n}_{i = 1}(y_{ij} - \bar{y}_{j})(y_{ij} - \bar{y}_{j})$
 
-
-
 ## Incomplete data
 
-In any incomplete-data problem, we can factor the distribution of the complete data $Y$ in \@ref(eq:pdfy) as:
+In any incomplete-data problem, we can factor the distribution of the complete data $Y$ in @eq-pdfy as:
 
 $$
-f(Y|\theta) = f(Y_{obs}|\theta) f(Y_{mis}|Y_{obs}, \theta) (\#eq:idp)
-$$
+f(Y|\theta) = f(Y_{obs}|\theta) f(Y_{mis}|Y_{obs}, \theta)
+$$ {#eq-idp}
 
 where $f(Y_{obs}|\theta)$ is the density of the observed data $Y$; and $f(Y_{mis}|Y_{obs}, \theta)$ is the density of the missing data given the observed data.
-We can rewrite \@ref(eq:idp) as a function of $\theta$ and obtain the partitioning of the complete data likelihood function:
+We can rewrite @eq-idp as a function of $\theta$ and obtain the partitioning of the complete data likelihood function:
 
 $$
-L(\theta|Y) = L(\theta|Y_{obs}) f(Y_{mis}|Y_{obs}, \theta) c (\#eq:cdlp)
-$$
+L(\theta|Y) = L(\theta|Y_{obs}) f(Y_{mis}|Y_{obs}, \theta) c
+$$ {#eq-cdlp}
 
-and to make \@ref(eq:cdlp) easier to work with, it is useful to take its $log$:
+and to make @eq-cdlp easier to work with, it is useful to take its $log$:
 
 $$
-l(\theta|Y) = l(\theta|Y_{obs}) + log f(Y_{mis}|Y_{obs}, \theta) + c (\#eq:lcdlp)
-$$
+l(\theta|Y) = l(\theta|Y_{obs}) + log f(Y_{mis}|Y_{obs}, \theta) + c
+$$ {#eq-lcdlp}
 
 where:
 
@@ -122,20 +120,19 @@ where:
 - $c$ is an arbitrary proportionality constant
 - $f(Y_{mis}|Y_{obs}, \theta)$ is the predictive distribution of the missing data given $\theta$
 
-The task is to find the estimate of $\theta$ that maximizes the log likelihood $l(\theta|Y_{obs})$.
-When this likelihood is differentiable the ML estimates of $\theta$ can be found by setting the its first derivative equal to 0 and solving for $\theta$:
+The task is to find the estimate of $\theta$ that maximizes the log-likelihood $l(\theta|Y_{obs})$.
+When this likelihood is differentiable the ML estimates of $\theta$ can be found by setting its first derivative equal to 0 and solving for $\theta$:
 
 $$
-\frac{\partial l(\theta|Y_{obs})}{\partial \theta} = 0 (\#eq:floglike)
-$$
+\frac{\partial l(\theta|Y_{obs})}{\partial \theta} = 0
+$$ {#eq-floglike}
 
-However, it is not always easy (or possible) to find a closed form solution to \@ref(eq:floglike).
-
+However, it is not always easy (or possible) to find a closed-form solution to @eq-floglike.
 
 # The EM algorithm
 
-Since $Y_{mis}$ is unknown, we cannot calculate the terms of \@ref(eq:lcdlp) that include it, so instead we take its average over the predictive distribution $f(Y_{mis}|Y_{obs}, \theta^{(t)})$, where $\theta^{(t)}$ is the current estimate of the unknown parameter.
-This means we multiply both sides of \@ref(eq:lcdlp) by $f(Y_{mis}|Y_{obs}, \theta^{(t)})$ and integrate over the unknown $Y_{mis}$ :
+Since $Y_{mis}$ is unknown, we cannot calculate the terms of @eq-lcdlp that include it, so instead we take its average over the predictive distribution $f(Y_{mis}|Y_{obs}, \theta^{(t)})$, where $\theta^{(t)}$ is the current estimate of the unknown parameter.
+This means we multiply both sides of @eq-lcdlp by $f(Y_{mis}|Y_{obs}, \theta^{(t)})$ and integrate over the unknown $Y_{mis}$ :
 
 \begin{aligned}
 \int & l(\theta|Y) f\left(Y_{mis}|Y_{obs}, \theta^{(t)}\right) dY_{mis} = l(\theta|Y_{obs}) + \\
@@ -145,8 +142,8 @@ This means we multiply both sides of \@ref(eq:lcdlp) by $f(Y_{mis}|Y_{obs}, \the
 which can be shortened to:
 
 $$
-Q\left(\theta|\theta^{(t)}\right) = l(\theta|Y_{obs}) + H(\theta|\theta^{(t)}) + c (\#eq:avglcdlp)
-$$
+Q\left(\theta|\theta^{(t)}\right) = l(\theta|Y_{obs}) + H(\theta|\theta^{(t)}) + c
+$$ {#eq-avglcdlp}
 
 It can be shown that if we define $\theta^{t+1}$ as the value of $\theta$ that maximizes $Q(\theta|\theta^{(t)})$, then $\theta^{t+1}$ is a better estimate than $\theta^{t+1}$ in the sense that its observed-data loglikelihood is at least as high as that of $\theta^{t}$:
 
@@ -183,7 +180,7 @@ We refer to the observed part of $Y$ as $Y_{obs}$ and to the missing part as $Y_
 Under the missing at random assumption, the observed-data likelihood is proportional to the probability of $Y_{obs}$ given the unknown parameters $\theta$:
 
 $$
-L(\theta|Y_{obs}) \propto f(Y_{obs}|\theta) (\#eq:odl)
+L(\theta|Y_{obs}) \propto f(Y_{obs}|\theta) (\#eq-odl)
 $$
 
 If we assume that $Y$ comes from a [multivariate normal distribution](https://en.wikipedia.org/wiki/Multivariate_normal_distribution) with parameter $\theta = (\mu, \Sigma)$ and an arbitrary number ($S$) of missing data patterns, then, the observed-data likelihood can be written as:

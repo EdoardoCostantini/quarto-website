@@ -23,7 +23,7 @@ about:
       text: Shiny
       href: https://edoardocostantini.shinyapps.io/mihd/
 categories: [Published]
-bibliography: ../resources/bibshelf.bib
+bibliography: ./resources/bibshelf.bib
 nocite: '@costantiniEtAl:2023b'
 ---
 

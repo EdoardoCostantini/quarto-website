@@ -1,15 +1,12 @@
 ---
-title: "Research"
-listing:
-  contents: research
-  sort: "date desc"
-  type: table
-  categories: false
-  sort-ui: true
-  filter-ui: false
-  table-hover: true
-  fields: [date, title, categories]
-date-format: "YYYY"
-page-layout: full
-title-block-banner: true
+title: "My academic research"
+author: Edoardo Costantini
+page-layout: article
 ---
+
+As a researcher at TiU I worked on improving algorithms to address missing values in survey data. I wrote a thesis on multiple imputation and published my work in methodology journals:
+
+- Paper 1
+- Paper 2
+- Paper 3
+- Paper 4

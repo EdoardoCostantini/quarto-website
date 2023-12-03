@@ -240,9 +240,9 @@
   {
     "objectID": "research.html",
     "href": "research.html",
-    "title": "Research",
+    "title": "My academic research",
     "section": "",
-    "text": "Order By\n       Default\n         \n          Date - Oldest\n        \n         \n          Date - Newest\n        \n         \n          Title\n        \n     \n  \n\n\n\n\n\n\nDate\n\n\nTitle\n\n\nCategories\n\n\n\n\n\n\n2023\n\n\nMultiple Imputation with GSPCR: a case study\n\n\nWork in progress\n\n\n\n\n2023\n\n\nSupervised Dimensionality Reduction for Multiple Imputation by Chained Equations\n\n\nWork in progress\n\n\n\n\n2023\n\n\nSolving the many variables problem in MICE with principal component regression.\n\n\nPublished\n\n\n\n\n2022\n\n\nHigh-dimensional imputation for the social sciences: a comparison of state-of-the-art methods.\n\n\nPublished\n\n\n\n\n\n\nNo matching items"
+    "text": "As a researcher at TiU I worked on improving algorithms to address missing values in survey data. I wrote a thesis on multiple imputation and published my work in methodology journals:\n\nPaper 1\nPaper 2\nPaper 3\nPaper 4"
   },
   {
     "objectID": "posts/series-pca-primer/pls.html",
@@ -383,5 +383,61 @@
     "title": "Sampling",
     "section": "",
     "text": "Date\n\n\nTitle\n\n\nCategories\n\n\n\n\n\n\nOct 26, 2022\n\n\nNormal to anything (NORTA) sampling\n\n\ndistributions\n\n\n\n\n\n\nNo matching items"
+  },
+  {
+    "objectID": "mi-pcr.html",
+    "href": "mi-pcr.html",
+    "title": "Solving the many variables problem in MICE with principal component regression.",
+    "section": "",
+    "text": "Porject description\nBLas blas blsdasoiceqdas\n\n\nResources\n\n📝 Published article\n📝 Preprint\n💽 GitHub\n🪩 Shiny\n📈 Data\n\n\n\n\n\n\n\n\n\nCitation\n\nCostantini, Edoardo, Kyle M Lang, Klaas Sijtsma, and Tim Reeskens. 2023. “Solving the Many-Variables Problem in MICE with Principal Component Regression.” Behavior Research Methods. https://doi.org/doi.org/10.3758/s13428-023-02117-1."
+  },
+  {
+    "objectID": "mi-hd.html",
+    "href": "mi-hd.html",
+    "title": "High-dimensional imputation for the social sciences: a comparison of state-of-the-art methods.",
+    "section": "",
+    "text": "Citation\n\nCostantini, Edoardo, Kyle M. Lang, Tim Reeskens, and Klaas Sijtsma. 2023. “High-Dimensional Imputation for the Social Sciences: A Comparison of State-of-the-Art Methods.” Sociological Methods & Research 0 (0). https://doi.org/https://doi.org/10.1177/00491241231200194."
+  },
+  {
+    "objectID": "mi-spcr.html",
+    "href": "mi-spcr.html",
+    "title": "Supervised Dimensionality Reduction for Multiple Imputation by Chained Equations",
+    "section": "",
+    "text": "Citation\n\nCostantini, Edoardo, Kyle M. Lang, and Klaas Sijtsma. 2023. “Supervised Dimensionality Reduction for Multiple Imputation by Chained Equations.” arXiv Preprint arXiv:2309.01608."
+  },
+  {
+    "objectID": "mi-gspcr.html#resources",
+    "href": "mi-gspcr.html#resources",
+    "title": "Multiple Imputation with GSPCR: a case study",
+    "section": "Resources",
+    "text": "Resources\n\nGitHub Link\nShiny"
+  },
+  {
+    "objectID": "mi-gspcr.html",
+    "href": "mi-gspcr.html",
+    "title": "Multiple Imputation with GSPCR: a case study",
+    "section": "",
+    "text": "BLas blas blsdasoiceqdas"
+  },
+  {
+    "objectID": "mi-gspcr.html#porject-description",
+    "href": "mi-gspcr.html#porject-description",
+    "title": "Multiple Imputation with GSPCR: a case study",
+    "section": "",
+    "text": "BLas blas blsdasoiceqdas"
+  },
+  {
+    "objectID": "mi-pcr.html#porject-description",
+    "href": "mi-pcr.html#porject-description",
+    "title": "Solving the many variables problem in MICE with principal component regression.",
+    "section": "",
+    "text": "BLas blas blsdasoiceqdas"
+  },
+  {
+    "objectID": "mi-pcr.html#resources",
+    "href": "mi-pcr.html#resources",
+    "title": "Solving the many variables problem in MICE with principal component regression.",
+    "section": "Resources",
+    "text": "Resources\n\n📝 Published article\n📝 Preprint\n💽 GitHub\n🪩 Shiny\n📈 Data"
   }
 ]

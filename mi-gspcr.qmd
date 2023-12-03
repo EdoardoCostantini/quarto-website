@@ -1,0 +1,18 @@
+---
+title: "Multiple Imputation with GSPCR: a case study"
+author: Edoardo Costantini
+slug: mi-gspcr
+date: '2023-09-13'
+categories: [Work in progress]
+bibliography: ./resources/bibshelf.bib
+# nocite: '@costantiniEtAl:2022c'
+---
+
+## Porject description
+
+BLas blas blsdasoiceqdas 
+
+## Resources
+
+- [GitHub Link](https://github.com/EdoardoCostantini/mi-gspcr-evs)
+- [Shiny](https://edoardocostantini.shinyapps.io/plotmigspcr/)

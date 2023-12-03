@@ -26,7 +26,7 @@ about:
     #   text: Published article
     #   href: 
 categories: [Work in progress]
-bibliography: ../resources/bibshelf.bib
+bibliography: ./resources/bibshelf.bib
 nocite: '@costantiniEtAl:2022c'
 ---
 

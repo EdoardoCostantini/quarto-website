@@ -103,5 +103,17 @@
   },
   "research/mi-gspcr.qmd": {
     "mi-gspcr.html": "dc44c11f"
+  },
+  "mi-gspcr.qmd": {
+    "mi-gspcr.html": "447efc62"
+  },
+  "mi-spcr.qmd": {
+    "mi-spcr.html": "97870d89"
+  },
+  "mi-hd.qmd": {
+    "mi-hd.html": "5caa456d"
+  },
+  "mi-pcr.qmd": {
+    "mi-pcr.html": "f9c4d906"
   }
 }

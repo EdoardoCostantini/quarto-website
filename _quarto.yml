@@ -5,22 +5,33 @@ website:
   title: "Edoardo Costantini"
   site-url: 'https://edoardocostantini.github.io'
   site-path: '/'
-  navbar:
-    left:
-      - text: "Digital garden"
-        menu:
+  sidebar:
+    style: "floating"
+    search: true
+    contents:
+      - research.qmd
+      - section: "Digital garden"
+        contents:
           - all-posts.qmd
           - series-pca.qmd
           - series-sm-course.qmd
           - series-sampling.qmd
-      - href: research.qmd
-        text: Research 
+      - section: "Research"
+        contents: 
+          - mi-gspcr.qmd
+          - mi-hd.qmd
+          - mi-pcr.qmd
+          - mi-spcr.qmd
 
 format:
   html:
-    theme: 
-      light: [flatly, light.scss]
-      dark: [darkly, dark.scss]
-    css: styles.css
     toc: true
-  
+    theme:
+      light: [cosmo, theme.scss]
+    code-copy: true
+    code-overflow: wrap
+    css: styles.css
+    grid:
+      sidebar-width: 250px
+      body-width: 900px
+      margin-width: 300px

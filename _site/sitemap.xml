@@ -2,15 +2,15 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://edoardocostantini.github.io/all-posts.html</loc>
-    <lastmod>2023-09-18T08:50:08.829Z</lastmod>
+    <lastmod>2023-11-23T16:47:24.678Z</lastmod>
   </url>
   <url>
     <loc>https://edoardocostantini.github.io/index.html</loc>
-    <lastmod>2023-09-18T08:50:08.216Z</lastmod>
+    <lastmod>2023-11-23T16:46:34.814Z</lastmod>
   </url>
   <url>
     <loc>https://edoardocostantini.github.io/series-pca.html</loc>
-    <lastmod>2023-09-18T08:50:07.712Z</lastmod>
+    <lastmod>2023-11-23T16:00:46.330Z</lastmod>
   </url>
   <url>
     <loc>https://edoardocostantini.github.io/posts/series-sm-course/se-resid.html</loc>
@@ -30,7 +30,7 @@
   </url>
   <url>
     <loc>https://edoardocostantini.github.io/posts/series-pca-primer/pcovr.html</loc>
-    <lastmod>2023-09-18T08:49:57.957Z</lastmod>
+    <lastmod>2023-11-23T15:37:24.972Z</lastmod>
   </url>
   <url>
     <loc>https://edoardocostantini.github.io/posts/series-em/sweep.html</loc>
@@ -58,7 +58,7 @@
   </url>
   <url>
     <loc>https://edoardocostantini.github.io/research.html</loc>
-    <lastmod>2023-09-18T08:49:54.387Z</lastmod>
+    <lastmod>2023-11-23T16:46:27.172Z</lastmod>
   </url>
   <url>
     <loc>https://edoardocostantini.github.io/posts/series-pca-primer/pls.html</loc>
@@ -86,10 +86,26 @@
   </url>
   <url>
     <loc>https://edoardocostantini.github.io/series-sm-course.html</loc>
-    <lastmod>2023-09-18T08:50:07.976Z</lastmod>
+    <lastmod>2023-11-23T16:00:43.988Z</lastmod>
   </url>
   <url>
     <loc>https://edoardocostantini.github.io/series-sampling.html</loc>
     <lastmod>2023-09-18T08:50:08.464Z</lastmod>
+  </url>
+  <url>
+    <loc>https://edoardocostantini.github.io/mi-pcr.html</loc>
+    <lastmod>2023-11-23T16:32:58.519Z</lastmod>
+  </url>
+  <url>
+    <loc>https://edoardocostantini.github.io/mi-hd.html</loc>
+    <lastmod>2023-11-23T16:32:56.151Z</lastmod>
+  </url>
+  <url>
+    <loc>https://edoardocostantini.github.io/mi-spcr.html</loc>
+    <lastmod>2023-11-23T16:46:15.822Z</lastmod>
+  </url>
+  <url>
+    <loc>https://edoardocostantini.github.io/mi-gspcr.html</loc>
+    <lastmod>2023-11-23T16:46:21.732Z</lastmod>
   </url>
 </urlset>

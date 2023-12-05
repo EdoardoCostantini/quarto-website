@@ -50,7 +50,7 @@ mod1 <- lm(Salary ~ Sex, data = dat)
 
 # Adjusting with Blinder–Oaxaca decomposition ----------------------------------
 # follow:
-# - Annex 2 in: https://ete-online.biomedcentral.com/articles/10.1186/s12982-021-00100-9
+# - Annex 2 in: https://circabc.europa.eu/sd/a/c983d736-2399-40d8-90fa-78925615528d/DSS-2018-Mar-4.3%20Adjusted%20gender%20pay%20gap.pdf
 # - For decomposition types: https://cran.r-project.org/web/packages/oaxaca/vignettes/oaxaca.pdf
 # - For a good 3-way decomp: https://ete-online.biomedcentral.com/articles/10.1186/s12982-021-00100-9
 
@@ -132,3 +132,6 @@ data.frame(
     Package = na.omit(oax$threefold$overall),
     Manual = c(E, B + C, I)
 )
+
+# Contribution of each variable to the explained difference in salaries
+oax$twofold$variables[[1]][-1, 2] / oax$y$y.diff * 100

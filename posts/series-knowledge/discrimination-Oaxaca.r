@@ -119,7 +119,16 @@ install.packages("oaxaca")
 library(oaxaca)
 
 # Fit oaxaca
-oax <- oaxaca(Salary ~ Education + SES | Sex, data = dat, R = 1)
+oax_educ <- oaxaca(Salary ~ Education | Sex, data = dat, R = 1)
+oax_full <- oaxaca(Salary ~ Education + SES | Sex, data = dat, R = 1)
+
+#
+oax_educ$twofold$overall[1, c(2, 4)]
+oax_full$twofold$overall[1, c(2, 4)]
+
+#
+oax_educ$twofold$variables[[1]][-1, 2] / oax_educ$y$y.diff * 100
+oax_full$twofold$variables[[1]][-1, 2] / oax_full$y$y.diff * 100
 
 # Extract two fold with group A as reference
 data.frame(
@@ -142,4 +151,3 @@ oax$twofold$variables[[1]][-1, 2] / oax$y$y.diff * 100
 head(chicago)
 
 #
-

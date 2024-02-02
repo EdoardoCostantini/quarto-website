@@ -135,3 +135,11 @@ data.frame(
 
 # Contribution of each variable to the explained difference in salaries
 oax$twofold$variables[[1]][-1, 2] / oax$y$y.diff * 100
+
+# Oaxaca package example with their data ---------------------------------------
+
+# Check chicago data
+head(chicago)
+
+#
+

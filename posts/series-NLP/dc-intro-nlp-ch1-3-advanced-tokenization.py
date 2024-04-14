@@ -81,8 +81,11 @@ pattern2 = r"(#\w+|@\w+)"
 mentions_hashtags = regexp_tokenize(tweets[-1], pattern2)
 print(mentions_hashtags)
 
-# Use tokenize from the tweet tokenizer on the third twitt
+# Use tokenize from the tweet tokenizer on the third tweet
 TweetTokenizer().tokenize(tweets[2])
+
+# You could have done the same with patterns of your choice.. but would have been more work!
+regexp_tokenize(tweets[2], r"(#\w+|@\w+)")
 
 # Use the TweetTokenizer to tokenize all tweets into one list
 all_tokens = [TweetTokenizer().tokenize(t) for t in tweets]

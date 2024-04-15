@@ -1,14 +1,24 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Author:     Edoardo Costantini
-Project:    Learning Python
-Created:    2021-03-23
-"""
+# Project:   quarto-website
+# Objective: Learning Python: Operators
+# Author:    Edoardo Costantini
+# Created:   2021-03-23
+# Modified:  2024-04-15
+# Notes:
 
 import numpy as np
 
-# COMPARISON OPERATORS
+# Operators behaviors ----------------------------------------------------------
+
+# +
+sum_numbers = 2 + 4
+concatenate_strings = "Data" + "Analysis" + "Visualization"
+
+# *
+multiply_numbers = 1 * 3
+repeats_strings = "A" * 3
+
+# Comparison operators ---------------------------------------------------------
+
 # Works for numbers
 2 < 3
 2 == 3
@@ -79,6 +89,3 @@ np.logical_or(bmi > 21, bmi < 22)
 np.logical_not(bmi > 21, bmi < 22)
 
 bmi[np.logical_and(bmi > 21, bmi < 22)] # used for selection
-
-
-

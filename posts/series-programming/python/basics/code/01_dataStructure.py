@@ -18,7 +18,7 @@ fruits
 fruits.reverse() # permanent
 fruits
 
-# Using Lists as Stacks
+# Mutable
 stack = [3, 4, 5]
 stack.append(6)
 stack.append(7)
@@ -31,9 +31,23 @@ for x in range(10): # x becomes an object
     squares.append(x**2)
 
 squares = list(map(lambda x: x**2, range(10))) 
-    # x is not an object in the enviornment
+# x is not an object in the enviornment
 squares = [x**2 for x in range(10)] 
-    # alternative
+# alternative
+
+# Tuples -----------------------------------------------------------------------
+
+# Make a typle
+fruits_tuple = ("orange", "apple", "pear", "banana", "kiwi")
+
+# Unpack tuples in single lines
+o, a, p, b, k = fruits_tuple
+
+# Immutable!
+fruits_tuple.append("apple")
+
+# Accessing
+fruits_tuple[0]
 
 # Dictionaries -----------------------------------------------------------------
 # a dictionary maps a key to a value
@@ -56,7 +70,7 @@ keys = some_dict.keys()
 type(keys)
 for k in keys:
     print(type(k))
-    
+
 # Counters ---------------------------------------------------------------------
 
 # Import the Counter object
@@ -103,7 +117,7 @@ type(multiD)
 # Panda Objects ----------------------------------------------------------------
 # Enhanced NumPy structures
 # Module for working with tabular data (row and columns)
-    
+
 # (1) Series Object
 # one-dimensional array of indexed data
 data = pd.Series([0.25, 0.5, 0.75, 1.0])
@@ -115,9 +129,9 @@ data[0]
 data[1:3]
 
 # Essential difference:
-# - the Numpy Array has an implicitly defined integer index used to 
-#   access the values, 
-# - the Pandas Series has an explicitly defined index associated 
+# - the Numpy Array has an implicitly defined integer index used to
+#   access the values,
+# - the Pandas Series has an explicitly defined index associated
 #   with the values.
 # This allows to work on the index:
 data = pd.Series([0.25, 0.5, 0.75, 1.0],
@@ -140,7 +154,7 @@ some_dict["California":"Texas"]
 population = pd.Series(some_dict)
 # supports slicing and other array-style operations
 population["California":"Texas"] 
-    
+
 # (2) DataFrame Object
 # Sequence of aligned Series objects
 # Generalization of a NumPy array / specialization of a python dictionary
@@ -180,8 +194,8 @@ type(df)
 # Selecting columns
 df["country"] # with column names
 df.country  # with column notation (not working when column 
-            # anmes contain special characters)
-            
+# anmes contain special characters)
+
 # Select rows (with logical statements)
 df[df.area > 8]
 
@@ -196,7 +210,7 @@ for date, stop, riders in entries:
         ridership[date] = []
     # Append the stop and riders as a tuple to the date keys list
     ridership[date].append((stop, riders))
-    
+
 # Print the ridership for '03/09/2016'
 print(ridership['03/09/2016'])
 
@@ -210,6 +224,6 @@ ridership = defaultdict(list)
 for date, stop, riders in entries:
     # Use the stop as the key of ridership and append the riders to its value
     ridership[stop].append(riders)
-    
+
 # Print the first 10 items of the ridership dictionary
 print(list(ridership.items())[:10])

@@ -1,4 +1,7 @@
 /.quarto/
 
 # nltk resoruces
-posts/series-NLP/Introduction to NLP/nltk-resources/
+nltk-resources/
+
+# Ignore data camp twitter data
+tweets.csv

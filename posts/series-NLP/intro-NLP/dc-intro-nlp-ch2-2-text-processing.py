@@ -8,7 +8,7 @@
 # Set up -----------------------------------------------------------------------
 
 # Source file with required modules and stuff
-exec(open("./posts/series-NLP/dc-intro-nlp-modules.py").read())
+exec(open("./posts/series-NLP/intro-NLP/dc-intro-nlp-modules.py").read())
 
 # Lecture notes ----------------------------------------------------------------
 

@@ -7,14 +7,8 @@
 
 # Set up -----------------------------------------------------------------------
 
-# Load os module to define pahts
-import os
-
-# Get working directory
-cwd = os.getcwd()
-
-# Add the relative path to the NLP resources
-resources_loc = cwd + "/posts/series-NLP/nltk-resources/"
+# Source file with required modules and stuff
+exec(open("./posts/series-NLP/intro-NLP/dc-intro-nlp-modules.py").read())
 
 # Import modules
 import re
